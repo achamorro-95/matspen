@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar sesión</title>
+
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: #f4f4f4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+        }
+
+        .login-card {
+            background: white;
+            width: 360px;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            border-top: 6px solid #b11226;
+        }
+
+        .login-card h2 {
+            text-align: center;
+            color: #b11226;
+            margin-bottom: 30px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .login-card input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 18px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .login-card input:focus {
+            outline: none;
+            border-color: #b11226;
+        }
+
+        .login-card button {
+            width: 100%;
+            padding: 14px;
+            background: #b11226;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .login-card button:hover {
+            background: #8f0f1f;
+        }
+
+        .footer-text {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h2>MicroSaaS Imprenta</h2>
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="text" name="username" placeholder="Usuario" required>
+            <input type="password" name="password" placeholder="Contraseña" required>
+            <button type="submit">Entrar</button>
+        </form>
+
+        <div class="footer-text">
+            Sistema de gestión interna
+        </div>
+    </div>
+
+</body>
+</html>

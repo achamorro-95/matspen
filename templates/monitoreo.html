@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block tile %}Monitoreo Ventas{% endblock %}
+{% block content %}
+
+<h1>Monitoreo</h1>
+<form method="get" style="margin-bottom: 15px;">
+    <input type="text" name="q" placeholder="Buscar por cliente,vendedor..." value="{{ request.args.get('q', '') }}">
+    <button type="submit">
+        Buscar 
+    </button>
+</form>
+<table>
+    <thead class="table-head">
+        <tr>
+            <th># Venta</th>
+            <th>Cliente</th>
+            <th>Vendedor</th>
+            <th>Fecha de entrega</th>
+            <th>Estado general</th>
+            <th>Progreso</th>
+            <th>Acción</th>
+            
+        </tr>
+    </thead>
+    <tbody> 
+        {% if ventas %}
+            {% for v in ventas %}
+            <tr> 
+                <td>#{{ v.id }}</td>
+                <td>{{ v.cliente }}</td>
+                <td>{{ v.vendedor }}</td>
+
+                <td>{{ v.fecha if v.fecha else '_' }}</td>
+                <td>
+                    {% if v.estado_general == 'finalizada' %}
+                        <span class="badge badge-ok">Finalizada</span>
+                    {% elif v.estado_general == 'aprobada' %}
+                        <span class="badge badge-danger">Aprobada</span>
+                    {% elif v.estado_general == 'en_proceso' %}
+                        <span class="badge badge-danger">En proceso</span>
+                    {% else %}
+                        <span class="badge badge-danger">{{ v.estado_general }}</span>
+                    {% endif %}
+                </td>
+                    {{ v.lineas_listas }}/{{ v.total_lineas }}
+                </td>
+                <td>
+                    <a href="{{ url_for('ventas_produccion', venta_id=v.id) }}"
+                       style="
+                           display:inline-block;
+                           padding:6px 12px;
+                           background:#222;
+                           color:white;
+                           border-radius:8px;
+                           font-size:13px;
+                       ">
+                        Ver Producción
+                    </a> 
+                </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+                 <tr>
+                <td colspan="7" style="text-align:center; padding:20px;">
+                    No hay ventas para mostrar
+                </td>
+            </tr>
+        {% endif %}
+    </tbody>
+</table>
+
+
+{% endblock %}
+</html>

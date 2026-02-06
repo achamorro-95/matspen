@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Ventas{% endblock%}
+{% block content %}
+
+<h1 class="ventas-header">Ventas</h1>
+<a href="{{ url_for('ventas_nuevas') }}" style="display:inline-block; margin-bottom:15px;padding:10px;background-color: #b11226;color:white; border-radius: 10px; ">Nueva Venta</a>
+<form method="get">
+    <input type ="text" name ="q" placeholder="Buscar,cliente,vendedor..." value ="{{ q }}" style="padding:8px;border: 1px solid #ccc;border-radius: 6px;">
+    <button type="submit" style="padding: 10px 12px;border: none; border-radius: 8px; background-color: #b11226;color:white;">Filtrar</button>
+    <a href="/producciones" style="padding:10px 12px; border:none; border-radius: 6px;background-color:white;color:black;">Borrar</a>
+</form>
+<table border="2" cellpadding="10" cellpadding="0" width = "100%">
+    <thead class = "table-head">
+        <tr>
+            <th>Fecha</th>
+            <th>Vendedor</th>
+            <th>Cliente</th>
+            <th>Cotizacion</th>
+            <th>Monto</th>
+            <th>Accion</th>
+        </tr>   
+    </thead>
+    <tbody>
+        {% for v in ventas %}
+        <tr>
+            <td>{{ v.fecha }}</td>
+            <td>{{ v.vendedor }}</td>
+            <td>{{ v.cliente }}</td>    
+            <td>#{{ v.cotizacion }}</td>
+            <td>${{ v.mont }}</td>
+            <td>
+                <form method = "post" action="{{ url_for('eliminar_venta', ventas_id=v.id) }}"
+
+                 onsubmit="return confirm('¿Seguro que deseas eliminar este costo?');"
+                 style="display:inline;">
+                 <button type="submit" style="padding: 6px; border-radius: 6px;cursor: pointer; background-color: #b11226;color: white;">
+                    Eliminar
+                 </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+</table>
+
+
+
+<style>
+    .table-head{
+        color:#b11226;
+    }
+    .ventas-header{
+        color: black;
+        font-size: 32px;
+        margin-bottom: 10px;
+
+    }
+</style>
+{% endblock %}
+</html

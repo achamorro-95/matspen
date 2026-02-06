@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<h1>Dashboard</h1>
+
+<!-- ===================== TOP ===================== -->
+<div class="dashboard-top">
+
+    <!-- ===== CARDS ===== -->
+    <div class="cards-grid">
+        <div class="card" id="cardOffset">
+            <h4>Monto Offset</h4>
+            <p>$0.00</p>
+        </div>
+
+        <div class="card" id="cardDigital">
+            <h4>Monto Digital</h4>
+            <p>$0.00</p>
+        </div>
+
+        <div class="card" id="cardTotal">
+            <h4>Monto Total</h4>
+            <p>$0.00</p>
+        </div>
+
+        <div class="card" id="cardProducciones">
+            <h4>Producciones</h4>
+            <p>0</p>
+        </div>
+
+        <div class="card" id="cardPendientes">
+            <h4>Pendientes</h4>
+            <p>0</p>
+        </div>
+    </div>
+
+    <!-- ===== GRAFICA OFFSET / DIGITAL ===== -->
+    <div class="chart-box chart-fixed">
+        <div class="chart-title">Offset vs Digital</div>
+        <canvas id="graficaOffsetDigital"></canvas>
+    </div>
+</div>
+
+<!-- ===================== GRAFICAS GRANDES ===================== -->
+<div class="chart-box chart-full">
+    <div class="chart-title">Ventas por mes</div>
+    <canvas id="graficaPorMes"></canvas>
+</div>
+
+<div class="chart-box chart-full">
+    <div class="chart-title">Ventas por vendedor</div>
+    <canvas id="graficaPorVendedor"></canvas>
+</div>
+
+<!-- ===================== FILTROS ===================== -->
+<div class="ventas-header">
+    <select id="filtroVendedor">
+        <option value="">Todos los vendedores</option>
+        {% for v in vendedores %}
+        <option value="{{ v.vendedor }}">{{ v.vendedor }}</option>
+        {% endfor %}
+    </select>
+
+    <select id="filtroMes">
+        <option value="">Todos los meses</option>
+        <option value="01">Enero</option>
+        <option value="02">Febrero</option>
+        <option value="03">Marzo</option>
+        <option value="04">Abril</option>
+        <option value="05">Mayo</option>
+        <option value="06">Junio</option>
+        <option value="07">Julio</option>
+        <option value="08">Agosto</option>
+        <option value="09">Septiembre</option>
+        <option value="10">Octubre</option>
+        <option value="11">Noviembre</option>
+        <option value="12">Diciembre</option>
+    </select>
+
+    <select id="filtroTipo">
+        <option value="">Offset + Digital</option>
+        <option value="Offset">Offset</option>
+        <option value="Digital">Digital</option>
+    </select>
+</div>
+
+<!-- ===================== TABLA ===================== -->
+<table class="data-table" id="tablaVentas">
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>Vendedor</th>
+            <th>Tipo</th>
+            <th>Monto</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for v in ventas_detalle %}
+        <tr 
+            data-mes="{{ (v.fecha or '')[5:7] }}"
+            data-vendedor="{{ v.vendedor }}"
+            data-tipo="{{ v.tipo_impresion }}"
+            data-monto="{{ v.monto }}">
+
+            <td>{{ v.fecha }}</td>
+            <td>{{ v.vendedor }}</td>
+            <td>{{ v.tipo_impresion }}</td>
+            <td>${{ v.monto }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+let grafBarra, grafMes, grafVendedor;
+
+function aplicarFiltros() {
+
+    const vendedor = filtroVendedor.value;
+    const mes = filtroMes.value;
+    const tipo = filtroTipo.value;
+
+    let offset = 0, digital = 0;
+    let prod = 0, pend = 0;
+
+    let porMesO = Array(12).fill(0);
+    let porMesD = Array(12).fill(0);
+    let porVendedor = {};
+
+    document.querySelectorAll("#tablaVentas tbody tr").forEach(f => {
+
+        const mostrar =
+            (!vendedor || f.dataset.vendedor === vendedor) &&
+            (!mes || f.dataset.mes === mes) &&
+            (!tipo || f.dataset.tipo === tipo);
+
+        f.style.display = mostrar ? "" : "none";
+        if (!mostrar) return;
+
+        const monto = parseFloat(f.dataset.monto);
+        const i = parseInt(f.dataset.mes) - 1;
+
+        prod++;
+
+        if (f.dataset.estado === "Pendiente") pend++;
+
+        if (f.dataset.tipo === "Offset") {
+            offset += monto;
+            porMesO[i] += monto;
+        }
+
+        if (f.dataset.tipo === "Digital") {
+            digital += monto;
+            porMesD[i] += monto;
+        }
+
+        porVendedor[f.dataset.vendedor] =
+            (porVendedor[f.dataset.vendedor] || 0) + monto;
+    });
+
+    const total = offset + digital;
+
+    // ===== ACTUALIZAR CARDS =====
+    cardOffset.querySelector("p").innerText = "$" + offset.toFixed(2);
+    cardDigital.querySelector("p").innerText = "$" + digital.toFixed(2);
+    cardTotal.querySelector("p").innerText = "$" + total.toFixed(2);
+    cardProducciones.querySelector("p").innerText = prod;
+    cardPendientes.querySelector("p").innerText = pend;
+
+    dibujarBarra(offset, digital);
+    dibujarMes(porMesO, porMesD);
+    dibujarVendedor(porVendedor);
+}
+
+function dibujarBarra(o, d) {
+    if (grafBarra) grafBarra.destroy();
+    grafBarra = new Chart(graficaOffsetDigital, {
+        type: "bar",
+        data: {
+            labels: ["Offset", "Digital"],
+            datasets: [{
+                label: "Ventas",
+                data: [o, d],
+                backgroundColor: ["#7b61ff", "#2ecc71"]
+            }]
+        },
+        options: { maintainAspectRatio: false }
+    });
+}
+
+function dibujarMes(o, d) {
+    if (grafMes) grafMes.destroy();
+    grafMes = new Chart(graficaPorMes, {
+        type: "line",
+        data: {
+            labels: ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
+            datasets: [
+                { label:"Offset", data:o, borderColor:"#7b61ff", tension:.3 },
+                { label:"Digital", data:d, borderColor:"#2ecc71", tension:.3 }
+            ]
+        },
+        options: { maintainAspectRatio: false }
+    });
+}
+
+function dibujarVendedor(data) {
+    if (grafVendedor) grafVendedor.destroy();
+    grafVendedor = new Chart(graficaPorVendedor, {
+        type: "bar",
+        data: {
+            labels: Object.keys(data),
+            datasets: [{
+                label: "Ventas",
+                data: Object.values(data),
+                backgroundColor: "#b11226"
+            }]
+        },
+        options: { maintainAspectRatio: false }
+    });
+}
+
+document.querySelectorAll("select").forEach(s =>
+    s.addEventListener("change", aplicarFiltros)
+);
+
+document.addEventListener("DOMContentLoaded", aplicarFiltros);
+</script>
+
+<style>
+.dashboard-top {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 16px;
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.card {
+    background: white;
+    padding: 14px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+
+.card h4 {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+}
+
+.card p {
+    margin-top: 6px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.chart-box {
+    background: white;
+    padding: 12px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+
+.chart-fixed {
+    height: 260px;
+}
+
+.chart-full {
+    margin-top: 16px;
+    height: 300px;
+}
+
+.chart-box canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.ventas-header {
+    display: flex;
+    gap: 10px;
+    margin: 16px 0;
+}
+
+.data-table {
+    width: 100%;
+    background: white;
+    border-collapse: collapse;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.data-table th, .data-table td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+</style>
+
+{% endblock %}

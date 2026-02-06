@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Lista Cotizaciones{% endblock %}
+{% block content %}
+
+<h1>Lista de Cotizaciones</h1>
+
+<form method="get" style="display:flex; gap:10px; flex-wrap:wrap; margin:12px 0;">
+  <input type="text" name="q" placeholder="Buscar: cliente, vendedor, material..." value="{{ q }}"
+         style="padding:8px; border:1px solid #ccc; border-radius:6px; min-width:260px;">
+
+  <select name="status" style="padding:8px; border:1px solid #ccc; border-radius:6px;">
+    <option value="">Todos los status</option>
+    <option value="Borrador" {{ "selected" if status=="Borrador" else "" }}>Borrador</option>
+    <option value="Enviada" {{ "selected" if status=="Enviada" else "" }}>Enviada</option>
+    <option value="Aprobada" {{ "selected" if status=="Aprobada" else "" }}>Aprobada</option>
+    <option value="Rechazada" {{ "selected" if status=="Rechazada" else "" }}>Rechazada</option>
+
+    <option value="Finalizada" {{ "selected" if status=="Finalizada" else "" }}>Finalizada</option>
+  </select>
+
+  <button type="submit" style="padding:10px 12px; border:none; border-radius:6px; background:#b11226; color:white; cursor:pointer;">
+    Filtrar
+  </button>
+
+  <a href="/cotizaciones" style="padding:10px 12px; border-radius:6px; background:#eee; color:#111; text-decoration:none;">
+    Limpiar
+  </a>
+</form>
+
+{% if cotizaciones and cotizaciones|length > 0 %}
+  <table style="width:100%; border-collapse:collapse; background:white; border-radius:10px; overflow:hidden;">
+    <thead>
+      <tr style="background:#f3f3f3;">
+        <th style="text-align:left; padding:10px; border-bottom:1px solid #eee;">ID</th>
+        <th style="text-align:left; padding:10px; border-bottom:1px solid #eee;">Fecha</th>
+        <th style="text-align:left; padding:10px; border-bottom:1px solid #eee;">Cliente</th>
+        <th style="text-align:left; padding:10px; border-bottom:1px solid #eee;">Vendedor</th>
+        <th style="text-align:left; padding:10px; border-bottom:1px solid #eee;">Tipo</th>
+        <th style="text-align:left; padding:10px; border-bottom:1px solid #eee;">Material</th>
+        <th style="text-align:right; padding:10px; border-bottom:1px solid #eee;">Cantidad</th>
+        <th style="text-align:right; padding:10px; border-bottom:1px solid #eee;">Total</th>
+        <th style="text-align:left; padding:10px; border-bottom:1px solid #eee;">Status</th>
+        <th style="text-align:left; padding:10px; border-bottom:1px solid #eee;">Acción</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for c in cotizaciones %}
+      <tr>
+        <td style="padding:10px; border-bottom:1px solid #eee;">{{ c["id"] }}</td>
+        <td style="padding:10px; border-bottom:1px solid #eee;">{{ c["fecha"] }}</td>
+        <td style="padding:10px; border-bottom:1px solid #eee;">{{ c["cliente"] }}</td>
+        <td style="padding:10px; border-bottom:1px solid #eee;">{{ c["nombre_vendedor"] }}</td>
+        <td style="padding:10px; border-bottom:1px solid #eee;">{{ c["tipo_de_impresion"] }}</td>
+        <td style="padding:10px; border-bottom:1px solid #eee;">{{ c["material"] }}</td>
+        <td style="padding:10px; border-bottom:1px solid #eee; text-align:right;">{{ c["cantidad"] }}</td>
+        <td style="padding:10px; border-bottom:1px solid #eee; text-align:right;">
+          ${{ "%.2f"|format(c["costo_total"] or 0) }}
+        </td>
+        <td style="padding:10px; border-bottom:1px solid #eee;">{{ (c["status"] or "").strip() }}</td>
+
+        <td style="padding:10px; border-bottom:1px solid #eee;">
+          <a href="/cotizacion/{{ c['id'] }}" style="text-decoration:none; color:#b11226; font-weight:bold;">
+            Ver
+          </a>
+        {% set st = (c["status"] or "").strip() %}
+        {% if st != "Aprobada" %}
+
+          <button type="button"
+                  onclick="abrirAprobar({{ c['id'] }})"
+                  style="padding:6px 10px; border:none; border-radius:6px; background:#2e7d32; color:white; cursor:pointer;">
+            Aprobar
+          </button>
+
+          <div id="aprobarBox-{{ c['id'] }}" style="display:none; margin-top:8px; padding:10px; border:1px solid #ddd; border-radius:8px; background:#fafafa;">
+            <form method="post" action="/cotizacion/{{ c['id'] }}/aprobar" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <label for="fecha_entrega_{{ c['id'] }}" style="font-size:14px;">Entrega:</label>
+              <input type="date" id="fecha_entrega_{{ c['id'] }}" name="fecha_entrega" required
+                    style="padding:6px; border:1px solid #ccc; border-radius:6px;">
+
+
+              <button type="submit"
+                      style="padding:6px 10px; border:none; border-radius:6px; background:#2e7d32; color:white; cursor:pointer;">
+                Confirmar
+              </button>
+
+              <button type="button"
+                      onclick="cerrarAprobar({{ c['id'] }})"
+                      style="padding:6px 10px; border:none; border-radius:6px; background:#eee; cursor:pointer;">
+                Cancelar
+              </button>
+            </form>
+          </div>
+
+        {% endif %}
+
+          <form method="post" action="/cotizacion/{{ c['id'] }}/eliminar" style="display:inline;"
+        onsubmit="return confirm('¿Seguro que querés eliminar esta cotización?');">
+    <button type="submit"
+            style="padding:6px 10px; border:none; border-radius:6px; background:#c62828; color:white; cursor:pointer; margin-left:6px;">
+      Eliminar
+    </button>
+  </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No hay cotizaciones guardadas todavía.</p>
+{% endif %}
+<script> 
+  function abrirAprobar(id){
+    const box = document.getElementById("aprobarBox-"+id);
+    if(box) box.style.display="block";
+  }
+  function cerrarAprobar(id){
+    const box = document.getElementById("aprobarBox-" + id);
+    if (box) box.style.display = "none";
+  }
+</script>
+
+{% endblock %}

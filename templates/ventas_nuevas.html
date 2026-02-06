@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Costos Nuevos{% endblock %}
+{% block content %}
+
+<h1>Nuevas Ventas</h1>
+<form method="POST" action="{{ url_for('ventas_nuevas') }}" style="max-width:600px;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Fecha</label><br>
+    <input type="date" name="fecha" required style="width:100%; padding:8px; margin-bottom:10px;"><br><br>
+
+    <label>Vendedor</label><br>
+    <input type="text" name="vendedor" required style="width:100%; padding:8px; margin-bottom:10px;"><br><br>
+
+    <label>Cotizacion</label><br>
+    <input type="text" name="cotizacion" required style="width:100%; padding:8px; margin-bottom:10px;"><br><br>
+
+    <label>Cliente</label><br>
+    <input type="text" name="cliente"  required style="width:100%; padding:8px; margin-bottom:10px;"><br><br>
+
+    <label>Monto</label><br>
+    <input type="number" name="mont" required style="width:100%; padding:8px; margin-bottom:10px;"><br><br>
+
+    <button type="submit"
+            style="padding:10px 15px; background:#b11226; color:white; border:none;">
+        Guardar Costo</button>
+</form>
+
+{% endblock %}
+
+</html>

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Costos{% endblock %}
+
+{% block content %}
+
+<h1>Costos / Compras</h1>
+
+<a href="{{ url_for('nuevo_costo') }}"
+   style="display:inline-block; margin-bottom:15px;
+          padding:10px; background:#b11226;
+          color:white; text-decoration:none;">
+   + Nuevo Costo
+</a>
+
+<table border="1" cellpadding="10" cellspacing="0" width="100%">
+    <thead>
+        <tr style="background:#f2f2f2;">
+            <th>Material</th>
+            <th>Proveedor</th>
+            <th>Factura</th>
+            <th>Monto</th>
+            <th>Fecha</th>
+            <th>Accion</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for c in costos %}
+        <tr>
+            <td>{{ c.material }}</td>
+            <td>{{ c.proveedor }}</td>
+            <td>{{ c.factura }}</td>
+            <td>${{ c.monto }}</td>
+            <td>{{ c.fecha }}</td>
+            <td>
+               <form method="post"
+                    action="/costos/{{ c['id'] }}/eliminar"
+                    onsubmit="return confirm('¿Seguro que deseas eliminar este costo?');"
+                    style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
+                        style="padding:6px 10px; border:none; border-radius:6px;
+                                background:#c62828; color:white; cursor:pointer;">
+                    Eliminar
+                </button>
+                </form> 
+
+                </td>
+
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

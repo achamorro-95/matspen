@@ -1,0 +1,41 @@
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:24:24] "[32mGET /costos HTTP/1.1[0m" 302 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:24:24] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:24:28] "[32mPOST / HTTP/1.1[0m" 302 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:24:28] "GET /dashboard HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:24:31] "GET /ventas/monitoreo HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:24:36] "GET /dashboard HTTP/1.1" 200 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:26:47] "GET /producciones HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:26:52] "[32mGET /logout HTTP/1.1[0m" 302 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:26:52] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:flask_wtf.csrf:The CSRF token is missing.
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:30:58] "[31m[1mPOST / HTTP/1.1[0m" 400 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:flask_wtf.csrf:The CSRF token is missing.
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:35:00] "[31m[1mPOST / HTTP/1.1[0m" 400 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:35:03] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:35:05] "[32mPOST / HTTP/1.1[0m" 302 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:35:05] "GET /dashboard HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:35:06] "GET /producciones HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:35:37] "GET /costeo HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:35:38] "GET /cotizaciones HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:35:39] "GET /ventas/monitoreo HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:36:29] "GET /ventas/11/produccion HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:36:34] "GET /costos HTTP/1.1" 200 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:38:55] "[32mGET /logout HTTP/1.1[0m" 302 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:38:55] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:38:57] "[32mPOST / HTTP/1.1[0m" 302 -
+INFO:werkzeug:127.0.0.1 - - [06/Feb/2026 14:38:57] "GET /dashboard HTTP/1.1" 200 -

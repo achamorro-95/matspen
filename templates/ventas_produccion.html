@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Producción Venta #{{ venta.id }}{% endblock %}
+
+{% block content %}
+
+<h1>Producción - Venta #{{ venta.id }}</h1>
+
+<div style="background:white; padding:16px; border-radius:8px; margin-bottom:16px;">
+  <div style="display:flex; gap:20px; flex-wrap:wrap;">
+    <div><b>Cliente:</b> {{ venta.cliente }}</div>
+    <div><b>Vendedor:</b> {{ venta.vendedor }}</div>
+    <div><b>Fecha:</b> {{ venta.fecha }}</div>
+    <div><b>Entrega:</b> {{ venta.fecha_entrega if venta.fecha_entrega else '-' }}</div>
+    <div><b>Cotización:</b> #{{ venta.cotizacion }}</div>
+    <div><b>Monto:</b> ${{ venta.mont }}</div>
+  </div>
+
+  <div style="margin-top:10px;">
+    <b>Estado general:</b>
+    {% if venta.estado == 'finalizada' %}
+      <span class="badge badge-ok">Finalizada</span>
+    {% elif venta.estado == 'en_proceso' %}
+      <span class="badge badge-danger">En proceso</span>
+    {% else %}
+      <span class="badge badge-danger">{{ venta.estado }}</span>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ===== Agregar estación ===== -->
+<div style="background:white; padding:16px; border-radius:8px; margin-bottom:16px;">
+  <h3 style="margin-top:0;">Agregar estación</h3>
+
+  <form method="post" action="{{ url_for('agregar_estacion_a_venta', venta_id=venta.id) }}"
+        style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+
+    <select name="estacion_id" required style="padding:10px; border-radius:8px; border:1px solid #ddd; min-width:260px;">
+      <option value="">Selecciona estación</option>
+      {% for e in estaciones %}
+        <option value="{{ e.id }}">{{ e.orden }} - {{ e.nombre }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit"
+            style="padding:10px 14px; border:none; border-radius:8px; background:#b11226; color:white; cursor:pointer;">
+      Agregar
+    </button>
+  </form>
+
+  <p style="margin:10px 0 0; color:#666; font-size:13px;">
+    Tip: agrega las estaciones en el orden que va a pasar esta venta.
+  </p>
+</div>
+
+<!-- ===== Tabla de líneas ===== -->
+<table>
+  <thead class="table-head">
+    <tr>
+      <th>Orden</th>
+      <th>Estación</th>
+      <th>Estado</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% if lineas %}
+      {% for l in lineas %}
+      <tr>
+        <td>{{ l.orden }}</td>
+        <td>{{ l.estacion_nombre }}</td>
+        <td>
+          {% if l.estado == 'listo' %}
+            <span class="badge badge-ok">Listo</span>
+          {% elif l.estado == 'en_proceso' %}
+            <span class="badge badge-danger">En proceso</span>
+          {% else %}
+            <span class="badge badge-danger">Pendiente</span>
+          {% endif %}
+        </td>
+
+        <td style="display:flex; gap:8px; flex-wrap:wrap;">
+          <!-- Cambiar estado -->
+          <form method="post" action="{{ url_for('actualizar_estado_linea', venta_id=venta.id, linea_id=l.id) }}">
+            <input type="hidden" name="estado" value="pendiente">
+            <button type="submit" style="padding:6px 10px; border-radius:8px; border:1px solid #ddd; cursor:pointer;">
+              Pendiente
+            </button>
+          </form>
+
+          <form method="post" action="{{ url_for('actualizar_estado_linea', venta_id=venta.id, linea_id=l.id) }}">
+            <input type="hidden" name="estado" value="en_proceso">
+            <button type="submit" style="padding:6px 10px; border-radius:8px; border:1px solid #ddd; cursor:pointer;">
+              En proceso
+            </button>
+          </form>
+
+          <form method="post" action="{{ url_for('actualizar_estado_linea', venta_id=venta.id, linea_id=l.id) }}">
+            <input type="hidden" name="estado" value="listo">
+            <button type="submit" style="padding:6px 10px; border-radius:8px; border:1px solid #ddd; cursor:pointer;">
+              Listo
+            </button>
+          </form>
+
+          <!-- Eliminar línea -->
+          <form method="post"
+                action="{{ url_for('eliminar_linea_produccion', venta_id=venta.id, linea_id=l.id) }}"
+                onsubmit="return confirm('¿Eliminar esta estación de la venta?');">
+            <button type="submit"
+                    style="padding:6px 10px; border-radius:8px; border:1px solid #ddd; cursor:pointer;">
+              🗑 Eliminar
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    {% else %}
+      <tr>
+        <td colspan="4" style="text-align:center; padding:18px;">
+          Esta venta aún no tiene estaciones. Agrega estaciones arriba.
+        </td>
+      </tr>
+    {% endif %}
+  </tbody>
+</table>
+
+<style>
+.table-head th{
+  background:#b11226;
+  color:white;
+}
+</style>
+
+{% endblock %}
