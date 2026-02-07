@@ -36,6 +36,7 @@
             <td>
                <form method="post"
                     action="/costos/{{ c['id'] }}/eliminar"
+                    
                     onsubmit="return confirm('¿Seguro que deseas eliminar este costo?');"
                     style="display:inline;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

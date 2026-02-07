@@ -29,8 +29,8 @@
             <td>#{{ v.cotizacion }}</td>
             <td>${{ v.mont }}</td>
             <td>
-                <form method = "post" action="{{ url_for('eliminar_venta', ventas_id=v.id) }}"
-
+                <form method = "post" action="{{ url_for('eliminar_venta', ventas_id=v.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                  onsubmit="return confirm('¿Seguro que deseas eliminar este costo?');"
                  style="display:inline;">
                  <button type="submit" style="padding: 6px; border-radius: 6px;cursor: pointer; background-color: #b11226;color: white;">

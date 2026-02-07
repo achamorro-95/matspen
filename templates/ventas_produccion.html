@@ -32,8 +32,9 @@
   <h3 style="margin-top:0;">Agregar estación</h3>
 
   <form method="post" action="{{ url_for('agregar_estacion_a_venta', venta_id=venta.id) }}"
+        
         style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <select name="estacion_id" required style="padding:10px; border-radius:8px; border:1px solid #ddd; min-width:260px;">
       <option value="">Selecciona estación</option>
       {% for e in estaciones %}
@@ -82,6 +83,7 @@
         <td style="display:flex; gap:8px; flex-wrap:wrap;">
           <!-- Cambiar estado -->
           <form method="post" action="{{ url_for('actualizar_estado_linea', venta_id=venta.id, linea_id=l.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="estado" value="pendiente">
             <button type="submit" style="padding:6px 10px; border-radius:8px; border:1px solid #ddd; cursor:pointer;">
               Pendiente
@@ -89,6 +91,7 @@
           </form>
 
           <form method="post" action="{{ url_for('actualizar_estado_linea', venta_id=venta.id, linea_id=l.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="estado" value="en_proceso">
             <button type="submit" style="padding:6px 10px; border-radius:8px; border:1px solid #ddd; cursor:pointer;">
               En proceso
@@ -96,6 +99,7 @@
           </form>
 
           <form method="post" action="{{ url_for('actualizar_estado_linea', venta_id=venta.id, linea_id=l.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="estado" value="listo">
             <button type="submit" style="padding:6px 10px; border-radius:8px; border:1px solid #ddd; cursor:pointer;">
               Listo
@@ -105,7 +109,9 @@
           <!-- Eliminar línea -->
           <form method="post"
                 action="{{ url_for('eliminar_linea_produccion', venta_id=venta.id, linea_id=l.id) }}"
+               
                 onsubmit="return confirm('¿Eliminar esta estación de la venta?');">
+                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit"
                     style="padding:6px 10px; border-radius:8px; border:1px solid #ddd; cursor:pointer;">
               🗑 Eliminar

@@ -139,6 +139,7 @@
 <form method="post" action="{{ url_for('guardar_costeo') }}" style="margin-top:15px;">
   <!-- IMPORTANTE: manda IDs para que tu backend resuelva nombres -->
   <input type="hidden" name="cliente_id" value="{{ cliente_id }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <input type="hidden" name="vendedor_id" value="{{ vendedor_id }}">
 
   <input type="hidden" name="status" value="Borrador">
