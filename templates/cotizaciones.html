@@ -75,6 +75,7 @@
           <div id="aprobarBox-{{ c['id'] }}" style="display:none; margin-top:8px; padding:10px; border:1px solid #ddd; border-radius:8px; background:#fafafa;">
             <form method="post" action="/cotizacion/{{ c['id'] }}/aprobar" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
               <label for="fecha_entrega_{{ c['id'] }}" style="font-size:14px;">Entrega:</label>
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="date" id="fecha_entrega_{{ c['id'] }}" name="fecha_entrega" required
                     style="padding:6px; border:1px solid #ccc; border-radius:6px;">
 
