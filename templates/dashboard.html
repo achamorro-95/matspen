@@ -93,11 +93,13 @@
             <th>Vendedor</th>
             <th>Tipo</th>
             <th>Monto</th>
+            <th>Accion</th>
         </tr>
     </thead>
     <tbody>
         {% for v in ventas_detalle %}
         <tr 
+            data-id ="{{ v.id }}"
             data-mes="{{ (v.fecha or '')[5:7] }}"
             data-vendedor="{{ v.vendedor }}"
             data-tipo="{{ v.tipo_impresion }}"
@@ -107,6 +109,14 @@
             <td>{{ v.vendedor }}</td>
             <td>{{ v.tipo_impresion }}</td>
             <td>${{ v.monto }}</td>
+            <td>
+                <form method="post" action="{{ url_for('eliminar_produccion', prod_id=v.id) }}"
+                        onsubmit="return confirm('¿Eliminar este registro?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="eliminar" type="submit">Eliminar</button>
+                </form>
+            </td>
+
         </tr>
         {% endfor %}
     </tbody>
@@ -299,6 +309,14 @@ document.addEventListener("DOMContentLoaded", aplicarFiltros);
 .data-table th, .data-table td {
     padding: 10px;
     border-bottom: 1px solid #eee;
+}
+.eliminar{
+    border-radius: 8px;
+    background-color: red;
+    color:white;
+    border : none; 
+    cursor: pointer;
+    box-shadow: #666;
 }
 </style>
 

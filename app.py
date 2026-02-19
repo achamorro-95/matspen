@@ -78,6 +78,7 @@ def dashboard():
     # 1) Tabla principal (lo que usa el dashboard)
     ventas_detalle = conn.execute("""
     SELECT
+    id,
         fecha_entrega AS fecha,
         nombre_vendedor AS vendedor,
         tipo_de_impresion AS tipo_impresion,
@@ -100,6 +101,19 @@ def dashboard():
         ventas_detalle=ventas_detalle,
         vendedores=vendedores
     )
+@app.route("/producciones/<int:prod_id>/eliminar", methods=["POST"])
+def eliminar_produccion(prod_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+    conn.execute("DELETE FROM producciones WHERE id = ?", (prod_id,))
+    conn.commit()
+    conn.close()
+
+    flash("✅ Registro eliminado", "success")
+    return redirect(url_for("dashboard"))
+
 
 
 # producciones 
