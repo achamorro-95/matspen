@@ -7,8 +7,8 @@ import os
 from dotenv import load_dotenv
 import logging
 from flask_wtf.csrf import CSRFProtect
-
-
+import traceback
+from flask import jsonify, request
 
 load_dotenv()   
 app = Flask(__name__)
@@ -675,6 +675,11 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    print("🔥 ERROR EN:", request.path)
+    traceback.print_exc()  # imprime el traceback completo en logs
+    return "Error interno (mira logs).", 500
 
 if __name__ == "__main__":
     app.run()
