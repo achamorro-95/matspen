@@ -56,6 +56,21 @@ def login():
 # =====================================================
 # DASHBOARD
 # =====================================================
+@app.route("/dashboardventas")
+def dashventas(): 
+    if "user_id" not in session : 
+         return redirect(url_for("login"))
+    conn= get_db_connection()
+    vendedores = conn.execute("""
+        SELECT DISTINCT nombre AS vendedor
+        FROM vendedores
+        WHERE nombre IS NOT NULL AND TRIM(nombre) <> ''
+        ORDER BY nombre
+    """).fetchall()
+
+    ventas = conn.execute(""" SELECT fecha AS fecha, vendedor AS vendedor, cliente AS cliente,mont AS monto FROM ventas ORDER BY id DESC""").fetchall()
+    return render_template("dashboard_ventas.html",vendedores=vendedores,ventas=ventas)
+
 @app.route("/dashboard")
 def dashboard():
     conn = get_db_connection()

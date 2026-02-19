@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Ventas{% endblock %}
+{% block content %}
+
+<h1>Dashboard Ventas</h1>
+<div class="dashboard-top">
+    <div class="cards-grid">
+        <div class="card" id="montototal">
+            <h4>Monto Total</h4>
+            <p>$0.00</p>
+        </div>
+        <div class=" card" id="montodigital">
+            <h4>Monto Digital</h4>
+            <p>$0.00</p>
+        </div>
+        <div class="card" id="montoOffset">
+            <h4>Monto Offset</h4>
+            <p>$0.00</p>
+        </div>
+    </div>
+    <div class ="chart box chart-fixed">
+        <div class ="chart-title">Offset vs Digital</div>
+        <canvas id = "graficoOffsetDigital"></canvas>
+    </div>
+</div>
+<div class="chart-box chart-full" >
+    <div class = "chart-title">Ventas por mes</div>
+    <canvas id = "graficaPorMes"></canvas>
+</div>
+
+<div class = "ventas-vendedor">
+    <select id="filtrovendedor">
+        <option value="">Todos los vendedores</option>
+        {% for v in vendedores %}
+        <option value="{{ v.vendedor }}">{{ v.vendedor }}</option>
+        {% endfor %}
+    </select>
+    <select id="filtroMes">
+        <option value="">Todos los meses</option>
+        <option value="01">Enero</option>
+        <option value="02">Febrero</option>
+        <option value="03">Marzo</option>
+        <option value="04">Abril</option>
+        <option value="05">Mayo</option>
+        <option value="06">Junio</option>
+        <option value="07">Julio</option>
+        <option value="08">Agosto</option>
+        <option value="09">Septiembre</option>
+        <option value="10">Octubre</option>
+        <option value="11">Noviembre</option>
+        <option value="12">Diciembre</option>
+    </select>
+    <select id="filtroTipo">
+        <option value="">Offset + Digital</option>
+        <option value="Offset">Offset</option>
+        <option value="Digital">Digital</option>
+    </select>
+</div>
+
+<table class = "data-table" id="tablaVentas">
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>Vendedor</th>
+            <th>Tipo</th>
+            <th>Monto</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for v in ventas %}
+        <tr
+        data-mes="{{ (v.fecha or '')[5:7] }}"
+        data-vendedor="{{ v.vendedor }}"
+        data-monto="{{ v.monto }}">
+        <td>{{ v.fecha }}</td>
+        <td>{{ v.vendedor }}</td>
+        <td>Offset</td>
+        <td>${{ v.monto }}</td>
+        </tr>
+        {% endfor %}
+        
+    </tbody>
+</table>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let grafBarra = null;
+let grafMes = null;
+
+// ===== Helpers para agarrar elementos =====
+const $ = (id) => document.getElementById(id);
+
+const cardTotal   = $("montototal");
+const cardDigital = $("montodigital");
+const cardOffset  = $("montoOffset");
+
+const filtroVendedor = $("filtrovendedor");
+const filtroMes      = $("filtroMes");
+const filtroTipo     = $("filtroTipo");
+
+const tabla = $("tablaVentas");
+const ctxBarra = $("graficoOffsetDigital");
+const ctxMes   = $("graficaPorMes");
+
+// ===== Convierte monto "$1,234.50" o "1234.5" a number =====
+function toNumber(val) {
+  if (val == null) return 0;
+  const s = String(val).replace(/\$/g, "").replace(/,/g, "").trim();
+  const n = parseFloat(s);
+  return Number.isFinite(n) ? n : 0;
+}
+
+// ===== Obtiene tipo de una fila =====
+// Prioridad: data-tipo, si no existe usa la 3ra columna de la tabla
+function getTipoFromRow(tr) {
+  if (tr.dataset.tipo) return tr.dataset.tipo;
+  const tipoCell = tr.children[2];
+  return (tipoCell ? tipoCell.textContent.trim() : "") || "";
+}
+
+// ===== Función principal =====
+function aplicarFiltros() {
+  const vendedor = filtroVendedor.value;
+  const mes = filtroMes.value;         // "01"..."12" o ""
+  const tipo = filtroTipo.value;       // "Offset"/"Digital" o ""
+
+  let offset = 0;
+  let digital = 0;
+
+  const porMesOffset  = Array(12).fill(0);
+  const porMesDigital = Array(12).fill(0);
+
+  // recorre filas
+  const filas = tabla.querySelectorAll("tbody tr");
+  filas.forEach(tr => {
+    const rowVendedor = (tr.dataset.vendedor || "").trim();
+    const rowMes = (tr.dataset.mes || "").trim(); // "01".."12"
+    const rowTipo = getTipoFromRow(tr);           // "Offset"/"Digital"
+    const rowMonto = toNumber(tr.dataset.monto);
+
+    const mostrar =
+      (!vendedor || rowVendedor === vendedor) &&
+      (!mes || rowMes === mes) &&
+      (!tipo || rowTipo === tipo);
+
+    tr.style.display = mostrar ? "" : "none";
+    if (!mostrar) return;
+
+    const idxMes = parseInt(rowMes, 10) - 1; // 0..11, puede ser NaN si fecha vacía
+
+    if (rowTipo === "Offset") {
+      offset += rowMonto;
+      if (!Number.isNaN(idxMes) && idxMes >= 0 && idxMes < 12) porMesOffset[idxMes] += rowMonto;
+    } else if (rowTipo === "Digital") {
+      digital += rowMonto;
+      if (!Number.isNaN(idxMes) && idxMes >= 0 && idxMes < 12) porMesDigital[idxMes] += rowMonto;
+    } else {
+      // si no tiene tipo, lo sumamos al total, pero no a offset/digital
+      // (puedes decidir otra lógica)
+    }
+  });
+
+  const total = offset + digital;
+
+  // ===== actualizar cards =====
+  cardTotal.querySelector("p").innerText = "$" + total.toFixed(2);
+  cardDigital.querySelector("p").innerText = "$" + digital.toFixed(2);
+  cardOffset.querySelector("p").innerText = "$" + offset.toFixed(2);
+
+  // ===== redibujar gráficas =====
+  dibujarBarra(offset, digital);
+  dibujarMes(porMesOffset, porMesDigital);
+}
+
+function dibujarBarra(offset, digital) {
+  if (grafBarra) grafBarra.destroy();
+
+  grafBarra = new Chart(ctxBarra, {
+    type: "bar",
+    data: {
+      labels: ["Offset", "Digital"],
+      datasets: [{
+        label: "Monto",
+        data: [offset, digital]
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+function dibujarMes(offsetArr, digitalArr) {
+  if (grafMes) grafMes.destroy();
+
+  grafMes = new Chart(ctxMes, {
+    type: "line",
+    data: {
+      labels: ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
+      datasets: [
+        { label: "Offset", data: offsetArr, tension: 0.3 },
+        { label: "Digital", data: digitalArr, tension: 0.3 }
+      ]
+    },
+    options: {
+      maintainAspectRatio: false
+    }
+  });
+}
+
+// listeners
+[filtroVendedor, filtroMes, filtroTipo].forEach(sel => {
+  sel.addEventListener("change", aplicarFiltros);
+});
+
+document.addEventListener("DOMContentLoaded", aplicarFiltros);
+</script>
+<style>
+/* Layout general */
+.dashboard-top{
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+
+.cards-grid{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.card{
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.card h4{
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #444;
+  font-weight: 700;
+}
+
+.card p{
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #111;
+}
+
+/* Chart boxes */
+.chart-box, .chart.box{
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.chart-title{
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: #111;
+}
+
+.chart-fixed{
+  height: 220px;
+}
+
+.chart-full{
+  height: 320px;
+  margin-bottom: 16px;
+}
+
+/* Filtros */
+.ventas-vendedor{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 10px 0 14px;
+}
+
+.ventas-vendedor select{
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px 12px;
+  min-width: 220px;
+  outline: none;
+}
+
+/* Tabla */
+.data-table{
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.data-table thead{
+  background: #b11226;
+  color: #fff;
+}
+
+.data-table th, .data-table td{
+  padding: 12px 12px;
+  border-bottom: 1px solid #f1f1f1;
+  text-align: left;
+}
+
+.data-table tbody tr:hover{
+  background: #fafafa;
+}
+
+/* Responsive */
+@media (max-width: 980px){
+  .dashboard-top{
+    grid-template-columns: 1fr;
+  }
+  .cards-grid{
+    grid-template-columns: 1fr;
+  }
+  .chart-fixed{ height: 260px; }
+  .ventas-vendedor select{
+    min-width: 180px;
+    width: 100%;
+  }
+}
+</style>
+
+
+
+{% endblock %}
