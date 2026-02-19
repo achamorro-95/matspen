@@ -74,6 +74,7 @@
 
           <div id="aprobarBox-{{ c['id'] }}" style="display:none; margin-top:8px; padding:10px; border:1px solid #ddd; border-radius:8px; background:#fafafa;">
             <form method="post" action="/cotizacion/{{ c['id'] }}/aprobar" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <label for="fecha_entrega_{{ c['id'] }}" style="font-size:14px;">Entrega:</label>
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="date" id="fecha_entrega_{{ c['id'] }}" name="fecha_entrega" required
@@ -97,6 +98,7 @@
 
           <form method="post" action="/cotizacion/{{ c['id'] }}/eliminar" style="display:inline;"
         onsubmit="return confirm('¿Seguro que querés eliminar esta cotización?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button type="submit"
             style="padding:6px 10px; border:none; border-radius:6px; background:#c62828; color:white; cursor:pointer; margin-left:6px;">
       Eliminar

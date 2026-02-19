@@ -10,302 +10,230 @@
 <form method="post" class="form-box" id="form-costeo">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="accion" value="calcular">
+    <div class = "seleccion-group">
+        <input type="hidden" name="tipo_impresion" id="tipo_impresion" value="Offset">
+        <button type="button" class="seleccion-offset active" id="btnOffset">Offset</button>
+        <button type="button" class="seleccion-digital" id="btnDigital">Digital</button>
+    </div>
+    <div id="boxOffset">
 
-    <!-- ================= PASO 1: TIPO IMPRESION ================= -->
-    <select name="tipo_impresion" id="tipo_impresion" required>
-        <option value="">Selecciona tipo</option>
-        {% for t in tipos %}
-            <option value="{{ t.id }}">{{ t.nombre }}</option>
+  <div class="card">
+    <div class="grid">
+      <input type="number" step="0.01" name="ancho_arte" placeholder="Ancho (cm)" value = "{{ editando.ancho_arte if editando else '' }}">
+      <input type="number" step="0.01" name="alto_arte" placeholder="Alto (cm)" value = "{{ editando.alto_arte if editando else '' }}">
+      <input type="number" name="artes" placeholder="Cantidad de artes" value = "{{ editando.artes if editando else '' }}">
+
+      <input type="number" name="imp_total" placeholder="Tiraje total" value = "{{ editando.cantidades if editando else '' }}">
+      <input type="number" step="0.01" name="troquel" placeholder="Costo de troquel" value = "{{ editando.troquel if editando else '' }}">
+
+      <select class="material" name="material" required>
+        <option value="">Selecciona Material</option>
+        {% for m in materiales %}
+          <option value="{{ m.id }}" {% if editando and editando.material_id == m.id %}selected{% endif %}>{{ m.nombre }}</option>
         {% endfor %}
-    </select>
+      </select>
 
-    <!-- ================= PASO 2: CATEGORIA OFFSET (SOLO SI OFFSET) ================= -->
-    <div id="box-categoria-offset" style="display:none;">
-        <select name="categoria_offset" id="categoria_offset">
-            <option value="">Selecciona categoría Offset</option>
-            <option value="normal">1) Afiches / Volantes / Trípticos / Danglers / etc</option>
-            <option value="calendarios">2) Calendarios / Agendas</option>
-        </select>
+      <select name="vendedor" required>
+        <option value="">Selecciona Vendedor</option>
+        {% for v in vendedores %}
+          <option value="{{ v.id }}" {% if editando and editando.vendedor_id == v.id %}selected{% endif %}>{{ v.nombre }}</option>
+        {% endfor %}
+      </select>
+      <select name="cliente" required>
+        <option value="">Selecciona Cliente</option>
+        {% for c in clientes %}
+          <option value="{{ c.id }}" {% if editando and editando.cliente_id == c.id %}selected{% endif %}>{{ c.nombre }}</option><br>
+        {% endfor %}
+      </select>
+      <div class="barniz-row">
+        <label class="switch">
+          <input type="checkbox" name="barniz" value="si" {% if editando and editando.barniz == 'Si' %}checked{% endif %}>
+          <span class="slider"></span>
+        </label>
+        <span>Lleva Barniz</span>
+      </div>
+    </div>
+    <div style="margin-top:14px; text-align:right;">
+      <button type="submit">Calcular Costo</button>
+  </div>
+  </form>
+  <!-- TABLA (más abajo) -->
+  <div class="card table-card">
+    <div class="table-head">
+      <h3>Costos calculados</h3>
     </div>
 
-    <!-- ======================================================
-         CUADRO DE CALCULO (SE MUESTRA DESPUES DE ELEGIR TIPO)
-         ====================================================== -->
-    <div id="box-calculo" style="display:none;">
+    <div class="tabla_costo">
+      <table>
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Vendedor</th>
+            <th>Material</th>
+            <th>Cantidades</th>
+            <th>Barniz</th>
+            <th>Resmas</th>
+            <th>Costo Total</th>
+          </tr>
+        </thead>
+        <tbody id="tablaCostosBody">
+          {% for c in costos_calculados %}
+          <tr>
+            <td>{{ c.cliente }}</td>
+            <td>{{ c.vendedor }}</td>
+            <td>{{ c.material }}</td>
+            <td>{{ c.cantidades }}</td>
+            <td>{{ c.barniz }}</td>
+            <td>{{ c.resmas }}</td>
+            <td>${{ c.costo_total }}</td>
+            
+            <td> 
+                <form method="POST" action="/costeo/eliminar/{{ c.id }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
+                        style="padding:6px 10px; border:none; border-radius:6px;
+                                background:#c62828; color:white; cursor:pointer;"
+                        onclick="return confirm('¿Seguro que deseas eliminar este costo?');">
+                    Eliminar</button>
 
-        <!-- ================= VENDEDOR ================= -->
-        <select name="vendedor" required id ="vendedor">
-            <option value="">Vendedor</option>
-            {% for v in vendedores %}
-            <option value="{{ v.id }}">{{ v.nombre }}</option>
-            {% endfor %}
-        </select>
+                </form>
+            </td>
+            <td>
+                <form method="POST" action="/costeo/editar/{{ c.id }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
+                        style="padding:6px 10px; border:none; border-radius:6px;
+                                background:#2e7d32; color:white; cursor:pointer;">
+                    Editar</button>
 
-        <!-- ================= CLIENTE ================= -->
-        <select name="cliente" required>
-            <option value="">Cliente</option>
-            {% for c in clientes %}
-            <option value="{{ c.id }}">{{ c.nombre }}</option>
-            {% endfor %}
-        </select>
+                </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        {% if costos_calculados %}
+        <form method="POST" action ="/costeo/guardar">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit"
+                style="margin-top:10px; padding:8px 14px; border:none; border-radius:6px;
+                        background:#1565c0; color:white; cursor:pointer;">
+            Guardar Costos</button>
 
-        <!-- ================= TRABAJO ================= -->
-        <select name="trabajo" required>
-            <option value="">Tipo de trabajo</option>
-            {% for t in trabajos %}
-            <option value="{{ t.id }}">{{ t.nombre }}</option>
-            {% endfor %}
-        </select>
-
-        <!-- ================= MATERIAL ================= -->
-        <select name="material" id="material" required>
-            <option value="">Material</option>
-            {% for m in materiales %}
-            <option value="{{ m.id }}">
-                {{ m.nombre }} {{ m.gramaje }}g
-            </option>
-            {% endfor %}
-        </select>
-
-        <!-- ================= CAMPOS COMUNES ================= -->
-        <input type="number" name="cantidad" placeholder="Cantidad total" required>
-        <input type="number" name="troquel" placeholder="Precio Troquel" required>
-        <input type="number" name="caras" placeholder="1 o 2 Caras" min="1" max="2" required>
-
-        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-            <label style="display:flex; gap:6px; align-items:center;">
-                <input type="radio" name="barniz" value="no" checked> Sin barniz
-            </label>
-            <label style="display:flex; gap:6px; align-items:center;">
-                <input type="radio" name="barniz" value="si"> Con barniz
-            </label>
-        </div>
-
-        <!-- ================= SOLO OFFSET NORMAL ================= -->
-        <div id="offset-fields" style="display:none;">
-            <input type="number" step="0.01" name="ancho_arte" placeholder="Ancho del arte (cm)">
-            <input type="number" step="0.01" name="alto_arte" placeholder="Alto del arte (cm)">
-            <input type="number" name="artes" placeholder="Cantidad de artes">
-        </div>
-
-        <!-- ================= OFFSET CALENDARIOS (placeholder por ahora) ================= -->
-        <div id="offset-calendarios" style="display:none;">
-            <div style="padding:10px;border:1px dashed #aaa;border-radius:8px;">
-                <b>Calendarios / Agendas</b><br>
-                Aquí luego pondremos: portada, wire-o, laminado, base, etc.
-            </div>
-        </div>
-
-        <!-- ================= DIGITAL (placeholder) ================= -->
-        <div id="digital-box" style="display:none;">
-            <div style="padding:10px;border:1px dashed #aaa;border-radius:8px;">
-                <b>Digital</b><br>
-                En digital no usamos artes / medidas (por ahora).
-            </div>
-        </div>
-
-        <button class="btn-primary" type="submit">
-            Calcular
-        </button>
-
+                
+        </form>
+        {% endif %}
+      </table>
     </div>
-</form>
-
-<!-- ======================================================
-     RESULTADO TÉCNICO
-     ====================================================== -->
-{% if resultado %}
-<hr>
-<h2>Resultado del Costeo</h2>
-
-<table class="result-table">
-  {% if resultado.pliegos %}
-  <tr><td>Pliegos</td><td>{{ resultado.pliegos }}</td></tr>
-  {% endif %}
-  {% if resultado.resmas %}
-  <tr><td>Resmas</td><td>{{ resultado.resmas }}</td></tr>
-  {% endif %}
-  {% if resultado.planchas %}
-  <tr><td>Planchas</td><td>{{ resultado.planchas }}</td></tr>
-  {% endif %}
-  <tr><td>Costo material</td><td>${{ resultado.costo_material }}</td></tr>
-  <tr><td>Costo barniz</td><td>${{ resultado.costo_barniz }}</td></tr>
-  <tr><td>Troquel</td><td>${{ resultado.troquel }}</td></tr>
-  <tr><td>Costo tinta</td><td>${{ resultado.costo_tinta }}</td></tr>
-  <tr><td>Costo planchas</td><td>${{ resultado.costo_planchas }}</td></tr>
-  <tr class="total"><td>Total</td><td>${{ resultado.costo_total }}</td></tr>
-</table>
-
-<form method="post" action="{{ url_for('guardar_costeo') }}" style="margin-top:15px;">
-  <!-- IMPORTANTE: manda IDs para que tu backend resuelva nombres -->
-  <input type="hidden" name="cliente_id" value="{{ cliente_id }}">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <input type="hidden" name="vendedor_id" value="{{ vendedor_id }}">
-
-  <input type="hidden" name="status" value="Borrador">
-
-  <div style="margin-top:10px;">
-    <label>Descripción / Notas</label>
-    <textarea name="descripcion" rows="3"
-      placeholder="Ej: Cotización para afiche 30x40, entrega en 3 días..."></textarea>
   </div>
 
-  <button class="btn-primary" type="submit" style="margin-top:10px;">
-    Guardar cotización
-  </button>
-</form>
-{% endif %}
+</div>
 
 
-<!-- ======================================================
-     ESTILOS
-     ====================================================== -->
+        <div id="boxDigital" style="display:none;">
+        <!-- aquí van campos de digital (por ahora ejemplo) -->
+        <input type="number" step="0.01" name="precio_base_digital" placeholder="Precio base digital">
+        </div>
+
 <style>
-.form-box {
-    max-width: 420px;
-    background: white;
-    padding: 16px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,.08);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+
+button{
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    background: #b11226;
+    color: white;
+    cursor: pointer;
 }
-.form-box input, .form-box select, .form-box textarea {
-    width: 100%;
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
+    /* Tarjetas */
+.card{
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.06);
 }
 
-.btn-primary {
-    background:#b11226;
-    color:white;
-    padding:10px;
-    border-radius:6px;
-    border:none;
-    cursor:pointer;
-}
-.btn-secondary {
-    background:#ddd;
-    color:#111;
-    padding:10px;
-    border-radius:6px;
-    border:none;
-    cursor:pointer;
+/* Grid para inputs */
+.grid{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 12px;
+  align-items: end;
 }
 
-.result-table {
-    width: 320px;
-    margin-top: 12px;
-    background: white;
-    border-collapse: collapse;
-}
-.result-table td {
-    padding: 8px;
-    border-bottom: 1px solid #eee;
-}
-.result-table .total {
-    font-weight: bold;
+/* Que los select e inputs se vean iguales */
+.grid input, .grid select{
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
 }
 
-.save-box {
-    margin-top: 14px;
-    background: white;
-    border: 1px solid #333;
-    border-radius: 10px;
-    padding: 14px;
-    max-width: 520px;
-    box-shadow: 0 8px 18px rgba(0,0,0,.12);
+/* fila del barniz ocupa una celda completa si quieres */
+.barniz-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
 }
 
-.save-grid {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-.save-grid > div {
-    flex: 1;
-    min-width: 150px;
-}
-.save-box select, .save-box textarea {
-    width: 100%;
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
+/* Empujar la tabla hacia abajo */
+.table-card{
+  margin-top: 30px; /* <-- aquí controlas qué tan abajo queda */
 }
 
-.save-summary {
-    margin-top: 12px;
-    border-top: 1px solid #eee;
-    padding-top: 12px;
+/* Encabezado de la tabla */
+.table-head{
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  margin-bottom: 10px;
 }
+.table-head h3{
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+/* Tabla */
+.tabla_costo{
+  margin-top: 10px;
+}
+table th{
+  background: #f7f7f7;
+  text-align: left;
+}
+
 </style>
-
-<!-- ======================================================
-     JS: CONTROL DE FLUJO (TIPO -> CATEGORIA -> FORM)
-     + Mostrar/ocultar Guardar (NUEVO)
-     ====================================================== -->
 <script>
-const tipoSelect = document.getElementById("tipo_impresion");
-const boxCategoria = document.getElementById("box-categoria-offset");
-const categoriaSelect = document.getElementById("categoria_offset");
-const vendedorSelect = document.getElementById("vendedor")
-const boxCalculo = document.getElementById("box-calculo");
-const offsetFields = document.getElementById("offset-fields");
-const offsetCalendarios = document.getElementById("offset-calendarios");
-const digitalBox = document.getElementById("digital-box");
-function esconderTodo() {
-  boxCategoria.style.display = "none";
-  boxCalculo.style.display = "none";
-  offsetFields.style.display = "none";
-  offsetCalendarios.style.display = "none";
-  digitalBox.style.display = "none";
-}
+const btnOffset = document.getElementById("btnOffset");
+const btnDigital = document.getElementById("btnDigital");
+const tipoHidden = document.getElementById("tipo_impresion");
 
-function updateUI() {
-  esconderTodo();
+const boxOffset = document.getElementById("boxOffset");
+const boxDigital = document.getElementById("boxDigital");
 
-  const textoTipo = tipoSelect.options[tipoSelect.selectedIndex]?.text;
+function setTab(tipo){
+  tipoHidden.value = tipo;
 
-  if (!textoTipo || textoTipo === "Selecciona tipo") return;
-
-  // DIGITAL
-  if (textoTipo === "Digital") {
-    boxCalculo.style.display = "block";
-    digitalBox.style.display = "block";
-    offsetFields.style.display = "none";
-    offsetCalendarios.style.display = "none";
-    return;
-  }
-
-  // OFFSET
-  if (textoTipo === "Offset") {
-    boxCategoria.style.display = "block";
-
-    if (!categoriaSelect.value) return;
-
-    boxCalculo.style.display = "block";
-
-    if (categoriaSelect.value === "normal") {
-      offsetFields.style.display = "block";
-      offsetCalendarios.style.display = "none";
-    } else if (categoriaSelect.value === "calendarios") {
-      offsetFields.style.display = "none";
-      offsetCalendarios.style.display = "block";
-    }
+  if(tipo === "Offset"){
+    boxOffset.style.display = "block";
+    boxDigital.style.display = "none";
+    btnOffset.classList.add("active");
+    btnDigital.classList.remove("active");
+  } else {
+    boxOffset.style.display = "none";
+    boxDigital.style.display = "block";
+    btnDigital.classList.add("active");
+    btnOffset.classList.remove("active");
   }
 }
 
-tipoSelect.addEventListener("change", () => {
-  if (categoriaSelect) categoriaSelect.value = "";
-  updateUI();
-});
-if (categoriaSelect) categoriaSelect.addEventListener("change", updateUI);
+btnOffset.addEventListener("click", () => setTab("Offset"));
+btnDigital.addEventListener("click", () => setTab("Digital"));
 
-document.addEventListener("DOMContentLoaded", updateUI);
-
-
+// default
+setTab("Offset");
 </script>
 
+        
 {% endblock %}

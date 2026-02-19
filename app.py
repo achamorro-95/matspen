@@ -291,19 +291,32 @@ def eliminar_venta(ventas_id):
 # COSTOS
 # =====================================================
 @app.route("/costos")
-def costos():
+def costos(): 
     if "user_id" not in session:
         return redirect(url_for("login"))
-
     conn = get_db_connection()
-    costos = conn.execute(
-        "SELECT * FROM costos ORDER BY id DESC"
-    ).fetchall()
+    costos = conn.execute("SELECT * FROM costos ORDER BY id DESC").fetchall()
     conn.close()
-    
-    
-
     return render_template("costos.html", costos=costos)
+
+
+@app.route("/costos/agregar", methods=["GET", "POST"])
+def agregar_costo():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    if request.method == "POST":
+        material = request.form["material"]
+        proveedores = request.form["proveedor"]
+        factura = request.form["factura"]
+        monto = request.form["monto"]
+        fecha = request.form["fecha"]
+        conn = get_db_connection()
+        conn.execute("INSERT INTO costos (material, proveedor, factura, monto, fecha) VALUES (?, ?, ?, ?, ?)",
+                     (material, proveedores, factura, monto, fecha))
+        conn.commit()
+        conn.close()
+        return redirect(url_for("costos"))
+    return render_template("nuevo_costo.html")
 
 
 @app.route("/costos/nuevo", methods=["GET", "POST"])
@@ -311,246 +324,92 @@ def nuevo_costo():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
-    if request.method == "POST":
-        conn = get_db_connection()
-        conn.execute("""
-            INSERT INTO costos (material, proveedor, factura, monto, fecha)
-            VALUES (?, ?, ?, ?, ?)
-        """, (
-            request.form["material"],
-            request.form["proveedor"],
-            request.form["factura"],
-            request.form["monto"],
-            request.form["fecha"]
-        ))  
-        conn.commit()
-        conn.close()
-        return redirect(url_for("costos"))
-
-    return render_template("nuevo_costo.html")
-
-    
-@app.route("/costos/<int:costo_id>/eliminar", methods=["POST"])
-def eliminar_costo(costo_id):
-    if "user_id" not in session:
-        return redirect(url_for("login"))
-
-
-    conn = get_db_connection()
-    try:
-        cur = conn.execute("DELETE FROM costos WHERE id = ?", (costo_id,))
-        conn.commit()
-
-        flash("🗑️ Costo eliminado." if cur.rowcount else "⚠️ No se encontró el costo.",
-              "success" if cur.rowcount else "warning")
-
-    except Exception as e:
-        conn.rollback()
-        print("❌ ERROR ELIMINANDO:", repr(e))  # DEBUG
-        flash(f"❌ Error eliminando: {e}", "danger")
-
-    finally:
-        conn.close()
-
-    return redirect(url_for("costos"))
-
-# =====================================================
-# COSTEO
-# =====================================================
-import math
-from flask import render_template, request
-from database import get_db_connection
-
-
-@app.route("/costeo", methods=["GET", "POST"])
-def costeo():
     conn = get_db_connection()
 
-    tipos = conn.execute("SELECT * FROM tipos_impresion").fetchall()
-    trabajos = conn.execute("SELECT * FROM trabajos").fetchall()
+    # datos para los selects (SIEMPRE)
     materiales = conn.execute("SELECT * FROM materiales WHERE activo = 1").fetchall()
-
     vendedores = conn.execute("SELECT * FROM vendedores WHERE activo = 1").fetchall()
-    clientes = conn.execute("SELECT * FROM clientes WHERE activo = 1").fetchall()
-
-    resumen = None
+    clientes   = conn.execute("SELECT * FROM clientes WHERE activo = 1").fetchall()
+  
     accion = request.form.get("accion")
-    resultado = session.get("resultado_costeo")
+    resumen = None
+
+    # historial de tabla (para GET y POST)
+    costos_calculados = session.get("costos_calculados", [])
+    editando = session.get("editando_costeo")
 
     if request.method == "POST" and accion == "calcular":
 
-        # ================= VARIABLES BASE =================
-        pliegos = None
-        resmas = None
-        planchas = None
-        costo_material = 0
-        costo_tinta = 0
-        costo_planchas = 0
-        costo_barniz = 0.0   # ✅ CAMBIO 1: inicializamos barniz como NUMERO (float)
-        costo_base = 0
-
-        # ================= DATOS COMUNES =================
-        tipo_impresion_id = int(request.form["tipo_impresion"])
+        # ================= DATOS DEL FORM =================
+        tipo_nombre = request.form["tipo_impresion"]  # "Offset" o "Digital"
         material_id = int(request.form["material"])
-
-        cantidad = int(request.form["cantidad"])
-        caras = int(request.form["caras"])
-       
-    
-
-        # Medidas del arte (SIEMPRE float)
-        ancho_arte = float(request.form.get("ancho_arte", 0))
-        alto_arte = float(request.form.get("alto_arte", 0))
-
-        # ✅ CAMBIO 2: NO usar float aquí. Barniz debe venir como "si" o "no" desde el form
-        # Antes tenías: barniz_uv = float(request.form.get("barniz", 0))
-        barniz = request.form.get("barniz", "no")  # "si" o "no"
-        print("BARNIZ:", barniz)
-
-        # ================= OBTENER TIPO =================
-        tipo = conn.execute(
-            "SELECT * FROM tipos_impresion WHERE id = ?",
-            (tipo_impresion_id,)
-        ).fetchone()
-        session["tipo_impresion"] = tipo["nombre"]
-
-        # ================= ARTES (SOLO OFFSET) =================
-        if tipo["nombre"] == "Offset":
-            artes = int(request.form.get("artes", 1))
-        else:
-            artes = 1
-
-        # ================= OFFSET =================
-        if tipo["nombre"] == "Offset":
-
-            material = conn.execute(
-                "SELECT * FROM materiales WHERE id = ?",
-                (material_id,)
-            ).fetchone()
-
-            cfg = conn.execute(
-                "SELECT * FROM config_offset WHERE id = 1"
-            ).fetchone()
-
-
-
-          
-            # Medidas del pliego (DESDE DB)
-            ancho_pliego = material["ancho_pl"]
-            alto_pliego = material["altos_pl"]
-
-            if ancho_pliego is None or alto_pliego is None:
-                raise ValueError("El material no tiene medidas configuradas")
-
-            if ancho_arte <= 0 or alto_arte <= 0:
-                raise ValueError("Las medidas del arte deben ser mayores a 0")
-
-            # ================= IMPOSICIÓN =================
-            alcanzan_pliego = 0
-            entran_h1 = math.floor(ancho_pliego / ancho_arte)
-            entran_v1 = math.floor(alto_pliego / alto_arte)
-            entran_h2 = math.floor(ancho_pliego / alto_arte)
-            entran_v2 = math.floor(alto_pliego / ancho_arte)
-
-            alcanzan_medio_pliego_1 = entran_h1 * entran_v1
-            alcanzan_medio_pliego_2 = entran_h2 * entran_v2
-
-            if alcanzan_medio_pliego_1 > alcanzan_medio_pliego_2:
-                alcanzan_medio_pliego = alcanzan_medio_pliego_1
-            else:
-                alcanzan_medio_pliego = alcanzan_medio_pliego_2
-
-            print("ALCANZAN MEDIO PLIEGO:", alcanzan_medio_pliego)
-
-            if alcanzan_medio_pliego <= 0:
-                raise ValueError("El arte es más grande que el pliego")
-
-            # ================= PLIEGOS =================
-            alcanzan_pliego = alcanzan_medio_pliego * 2
-
-            # ================= RESMAS =================
-            pliegos_por_resma = material["pliegos_por_resma"]
-            resmas = (cantidad / alcanzan_pliego) / pliegos_por_resma
-            resmas = math.ceil(resmas)
-            costo_material = resmas * material["costo_resma"]
-
-            # ================= PLANCHAS =================
-            cfg = dict(cfg) if cfg else {}
-            planchas = math.ceil(artes / alcanzan_medio_pliego)
-            costo_plancha = float(cfg.get("costo_plancha", 0) or 0)
-            costo_planchas = planchas * costo_plancha
-            # Si tu costo_plancha realmente viene SOLO de cfg, usá:
-            # costo_planchas = planchas * float(cfg.get("costo_plancha", 0) or 0)
-
-            # ================= TINTA =================
-            costo_tinta_una_cara = ((70 / 11000) / alcanzan_medio_pliego) * cantidad
-            costo_tinta = costo_tinta_una_cara * caras
-
-            costo_barniz_una_cara = ((190/11000)/alcanzan_medio_pliego) *cantidad 
-
-            # ✅ CAMBIO 5: cálculo del barniz (NUMERO, no lista) basado en "si" / "no"
-            if barniz == "si":
-                costo_barniz = costo_barniz_una_cara
-                print(costo_barniz)
-            else:
-                costo_barniz = 0.0
-
-            # ✅ CAMBIO 6: sumar barniz al costo_base (si aplica)
-            costo_base = costo_material + costo_planchas + costo_tinta + costo_barniz
-
-        # ================= DIGITAL =================
-        else:
-            # Digital no usa pliego, planchas ni tinta offset
-            pliegos = None
-            resmas = None
-            planchas = None
-            costo_material = 0
-            costo_planchas = 0
-            costo_tinta = 0
-            costo_barniz = 0.0  # ✅ mantenerlo numérico
-
-            if caras == 1:
-                costo_base = cantidad * 0.071 * 2
-            else:
-                costo_base = cantidad * 0.130 * 2
-
-        # ================= TOTAL =================
-        costo_total = round(costo_base / 0.95, 2)
-
-        resultado = {
-            "pliegos": pliegos,
-            "resmas": round(resmas, 2) if resmas else None,
-            "planchas": planchas,
-            "costo_material": round(costo_material, 2),
-            "costo_tinta": round(costo_tinta, 2),
-            "costo_planchas": round(costo_planchas, 2),
-            "costo_barniz": round(costo_barniz, 2),  # ✅ ya no revienta porque es float
-            "costo_total": costo_total
-        }
-
-
-        resultado["tipo_de_impresion"] = tipo["nombre"]
-        resultado["cantidad"] = cantidad 
-
-        row_mat = conn.execute("SELECT nombre FROM materiales WHERE id = ?",(material_id,)).fetchone()
-        resultado["material_nombre"] = row_mat["nombre"] if row_mat else "" 
-        resultado["material_id"] = material_id
-
-
-        session["resultado_costeo"] = resultado
-    cliente_id_out = None 
-    vendedor_id_out =None 
-    if request.method == "POST" and accion == "calcular":
-        resultado = session.get("resultado_costeo")
-        vendedor_id_out= int(request.form["vendedor"])
-        cliente_id_out = int(request.form["cliente"])
-        if not resultado:
-            return redirect("/costeo")
-        
+        artes = int(request.form.get("artes", 0) or 0)
         vendedor_id = int(request.form["vendedor"])
         cliente_id = int(request.form["cliente"])
-        material_id = int(request.form["material"])
+        ancho_arte = float(request.form.get("ancho_arte", 0) or 0)
+        alto_arte  = float(request.form.get("alto_arte", 0) or 0)
+        imp_total  = int(request.form.get("imp_total", 0) or 0)
+        troquel    = float(request.form.get("troquel", 0) or 0)
+        barniz     = request.form.get("barniz") == "si"
+        material = conn.execute("SELECT * FROM materiales WHERE id = ?", (material_id,)).fetchone()
 
+
+        
+   
+        # ================= MATERIAL SELECCIONADO =================
+    
+
+        if not material:
+            conn.close()
+            return render_template(
+                "costeo.html",
+                resultado=None,
+                materiales=materiales,
+                vendedores=vendedores,
+                clientes=clientes,
+                costos_calculados=costos_calculados
+            )
+
+        costo_resmas = float(material["costo_resma"])
+        ancho_resmas = float(material["ancho_pl"])
+        alto_resmas  = float(material["altos_pl"])
+        pliegos_por_resmas = float(material["pliegos_por_resma"])
+
+        # ================= IMPOSICIÓN =================
+        entran_h1 = math.floor(ancho_resmas / ancho_arte) 
+        entran_v1 = math.floor(alto_resmas / alto_arte) 
+        entran_h2 = math.floor(ancho_resmas / alto_arte) 
+        entran_v2 = math.floor(alto_resmas / ancho_arte) 
+
+        alcanzan_medio_pliego = max(
+            entran_h1 * entran_v1,
+            entran_h2 * entran_v2
+        )
+
+       
+
+        # ================= COSTOS =================
+        cantidad_resmas = (imp_total / (alcanzan_medio_pliego*2)) / pliegos_por_resmas +1 
+        
+
+        costo_total_material = cantidad_resmas * costo_resmas
+
+        costo_barniz = (((190 / 11000) / alcanzan_medio_pliego) * imp_total) if barniz else 0
+        costo_tinta  = ((70 / 11000) / alcanzan_medio_pliego) * imp_total
+
+        costo_plancha = 28
+        cantidad_plancha = math.ceil(artes / alcanzan_medio_pliego) if artes > 0 else 0
+        costo_total_plancha = cantidad_plancha * costo_plancha
+
+        costo_total_produccion = (
+            costo_total_material +
+            costo_barniz +
+            costo_tinta +
+            costo_total_plancha +
+            troquel
+        ) / 0.95
+
+        # ================= NOMBRES =================
         cliente_nombre = conn.execute(
             "SELECT nombre FROM clientes WHERE id = ?",
             (cliente_id,)
@@ -561,139 +420,129 @@ def costeo():
             (vendedor_id,)
         ).fetchone()["nombre"]
 
-        material_nombre = conn.execute(
-            "SELECT nombre FROM materiales WHERE id = ?",
-            (material_id,)
-        ).fetchone()["nombre"]
-        
-
+        # ================= RESUMEN =================
         resumen = {
-            "Fecha:": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "Cliente": cliente_nombre,
-            "Vendedor": vendedor_nombre,
-            "Tipo Impresión": tipo["nombre"],
-            "Cant   idad": int(request.form["cantidad"]),
-            "Material" : material_nombre,
-            "Descripcion": "Trabajo de impresión",
-            "Monto: ": resultado["costo_total"]
+            "tipo_de_impresion": tipo_nombre,
+            "material_nombre": material["nombre"],
+            "cantidad": imp_total,
+            "artes": artes,
+            "resmas": cantidad_resmas,
+            "costo_material": round(costo_total_material, 2),
+            "costo_barniz": round(costo_barniz, 2),
+            "costo_tinta": round(costo_tinta, 2),
+            "costo_plancha": round(costo_total_plancha, 2),
+            "costo_total": round(costo_total_produccion, 2),
+            "vendedor_nombre": vendedor_nombre,
+            "cliente_nombre": cliente_nombre,
         }
 
+        session["resultado_costeo"] = resumen
+
+        # ================= TABLA =================
+        fila = {
+    "id": int(time.time()*1000),
+
+    # ids para poder preseleccionar en selects
+    "tipo_de_impresion": tipo_nombre,
+    "material_id": material_id,
+    "vendedor_id": vendedor_id,
+    "cliente_id": cliente_id,
+
+    # valores para rellenar inputs
+    "ancho_arte": ancho_arte,
+    "alto_arte": alto_arte,
+    "artes": artes,
+    "cantidad": imp_total,
+    "troquel": troquel,
+    "barniz": "Si" if barniz else "No",
+
+    # texto para tabla
+    "cliente": cliente_nombre,
+    "vendedor": vendedor_nombre,
+    "material": material["nombre"],
+
+
+    "resmas": cantidad_resmas,
+    "costo_total": round(costo_total_produccion, 2),
+}
+
+
+        costos_calculados.insert(0, fila)
+        
+        session["costos_calculados"] = costos_calculados
+        
+
     conn.close()
-    
+
     return render_template(
         "costeo.html",
-        tipos=tipos,    
-        trabajos=trabajos,
+        resultado=resumen,
         materiales=materiales,
-        resultado=resultado,
         vendedores=vendedores,
         clientes=clientes,
-        resumen=resumen,
-        cliente_id= cliente_id_out,
-        vendedor_id = vendedor_id_out
+        costos_calculados=costos_calculados,
+        editando=editando
     )
 
 
+@app.route("/costeo/eliminar/<int:item_id>", methods=["POST"])
+def eliminar_costeo(item_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    costos_calculados = session.get("costos_calculados", [])
+    costos_calculados = [c for c in costos_calculados if c.get("id") != item_id]
+    session["costos_calculados"] = costos_calculados
+
+    # si estabas editando ese mismo, limpiarlo
+    edit = session.get("editando_costeo")
+    if edit and edit.get("id") == item_id:
+        session.pop("editando_costeo", None)
+
+    return redirect(url_for("nuevo_costo"))
 
 
+@app.route("/costeo/editar/<int:item_id>", methods=["POST"])
+def editar_costeo(item_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    
+    costos_calculados = session.get("costos_calculados", [])
+    item = next((c for c in costos_calculados if c.get("id") == item_id), None)
+    session["editando_costeo"] = item
+
+       
+    return redirect(url_for("nuevo_costo"))
 import sqlite3, time
 from flask import request, redirect, session, flash
 from datetime import datetime
 
-@app.route("/guardar_costeo", methods=["POST"])
+@app.route("/costeo/guardar", methods=["POST"])
 def guardar_costeo():
     conn = get_db_connection()
-    try:
-        resultado = session.get("resultado_costeo")
-        if not resultado:
-            flash("No hay cálculo para guardar. Primero dale Calcular.", "warning")
-            return redirect("/costeo")
+    costos_calculados = session.get("costos_calculados", [])
+    for c in costos_calculados:
+            conn.execute("""
+    INSERT INTO costeo (
+        nombre_vendedor, material, resmas, tipo_de_impresion,
+        artes, cantidad, costo_total
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+""", (
+    c["vendedor"],
+    c["material"],
+    c["resmas"],
+    c["tipo_de_impresion"],
+    c["artes"],
+    c["cantidad"],
+    c["costo_total"],
+))
+    conn.commit()
+    conn.close()
+    session.pop("costos_calculados", None)
+    session.pop("editando_costeo", None)
 
-        status = (request.form.get("status") or "Borrador").strip()
-        descripcion = (request.form.get("descripcion") or "").strip()
-
-        tipo_impresion = (resultado.get("tipo_de_impresion") or resultado.get("tipo_impresion") or "").strip()
-        cliente_nombre = (resultado.get("cliente_nombre") or "").strip()
-        vendedor_nombre = (resultado.get("vendedor_nombre") or "").strip()
-        material_nombre = (resultado.get("material_nombre") or "").strip()
-
-        cliente_id = request.form.get("cliente_id")
-        vendedor_id = request.form.get("vendedor_id")
-        material_id = resultado.get("material_id")
-
-        if not cliente_nombre and cliente_id:
-            row = conn.execute("SELECT nombre FROM clientes WHERE id = ?", (int(cliente_id),)).fetchone()
-            cliente_nombre = row["nombre"] if row else ""
-
-        if not vendedor_nombre and vendedor_id:
-            row = conn.execute("SELECT nombre FROM vendedores WHERE id = ?", (int(vendedor_id),)).fetchone()
-            vendedor_nombre = row["nombre"] if row else ""
-
-        if not material_nombre and material_id:
-            row = conn.execute("SELECT nombre FROM materiales WHERE id = ?", (int(material_id),)).fetchone()
-            material_nombre = row["nombre"] if row else ""
-
-        if not tipo_impresion:
-            tipo_impresion = "N/D"
-        if not cliente_nombre:
-            flash("No se pudo obtener el cliente para guardar.", "danger")
-            return redirect("/costeo")
-        if not vendedor_nombre:
-            flash("No se pudo obtener el vendedor para guardar.", "danger")
-            return redirect("/costeo")
-        if not material_nombre:
-            material_nombre = "N/D"
-
-        fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        cantidad = int(resultado.get("cantidad") or 0)
-        artes = int(resultado.get("artes") or 0)
-        resmas = int(resultado.get("resmas") or 0)
-        planchas = int(resultado.get("planchas") or 0)
-        costo_material = float(resultado.get("costo_material") or 0)
-        costo_total = float(resultado.get("costo_total") or 0)
-
-        # --- reintentos si está locked ---
-        for intento in range(10):
-            try:
-                conn.execute("BEGIN IMMEDIATE")  # toma lock de escritura
-
-                conn.execute("""
-                    INSERT INTO costeo (
-                        fecha, tipo_de_impresion, nombre_vendedor, material,
-                        cantidad, artes, resmas, costo_material,
-                        cliente, planchas, costo_total, status
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    fecha, tipo_impresion, vendedor_nombre, material_nombre,
-                    cantidad, artes, resmas, costo_material,
-                    cliente_nombre, planchas, costo_total, status
-                ))
-
-                conn.commit()
-                new_id = conn.execute("SELECT last_insert_rowid() AS id").fetchone()["id"]
-                flash(f"✅ Cotización guardada (ID: {new_id})", "success")
-                return redirect("/cotizaciones")
-
-            except sqlite3.OperationalError as e:
-                if "locked" in str(e).lower():
-                    conn.rollback()
-                    time.sleep(0.2)
-                    continue
-                raise
-
-        flash("❌ La base de datos está ocupada. Cierra DB Browser / reinicia Flask y prueba otra vez.", "danger")
-        return redirect("/costeo")
-
-    except Exception as e:
-        conn.rollback()
-        flash(f"❌ Error guardando: {e}", "danger")
-        return redirect("/costeo")
-    finally:
-        conn.close()
-
-
-
+    flash("✅ Costos guardados como cotizaciones.", "success")
+    return redirect(url_for("cotizaciones"))
 @app.route("/cotizaciones")
 def cotizaciones():
     conn = get_db_connection()

@@ -3,7 +3,7 @@
 {% block content %}
 
 <h1>Agregar Costos</h1>
-<form method="POST" action="{{ url_for('nuevo_costo') }}" style="max-width:600px;">
+<form method="POST" action="{{ url_for('agregar_costo') }}" style="max-width:600px;">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label>Material</label><br>
     <input type="text" name="material" required style="width:100%; padding:8px; margin-bottom:10px;"><br><br>
