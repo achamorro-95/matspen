@@ -20,9 +20,9 @@
     {% if venta.estado == 'finalizada' %}
       <span class="badge badge-ok">Finalizada</span>
     {% elif venta.estado == 'en_proceso' %}
-      <span class="badge badge-danger">En proceso</span>
+      <span class="badge badge-warning">En proceso</span>
     {% else %}
-      <span class="badge badge-danger">{{ venta.estado }}</span>
+      <span class="badge badge-info">{{ venta.estado }}</span>
     {% endif %}
   </div>
 </div>
@@ -74,9 +74,9 @@
           {% if l.estado == 'listo' %}
             <span class="badge badge-ok">Listo</span>
           {% elif l.estado == 'en_proceso' %}
-            <span class="badge badge-danger">En proceso</span>
+            <span class="badge badge-warning">En proceso</span>
           {% else %}
-            <span class="badge badge-danger">Pendiente</span>
+            <span class="badge badge-muted">Pendiente</span>
           {% endif %}
         </td>
 

@@ -1,4 +1,4 @@
-services:
+ecservices:
   - type: web
     name: matspen
     env: python

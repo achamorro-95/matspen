@@ -3,11 +3,62 @@
 {% block content %}
 
 <h1 class="ventas-header">Ventas</h1>
-<a href="{{ url_for('ventas_nuevas') }}" style="display:inline-block; margin-bottom:15px;padding:10px;background-color: #b11226;color:white; border-radius: 10px; ">Nueva Venta</a>
+<form method="POST" action="{{ url_for('ventas_nuevas') }}" class="form-card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <div class="cards">
+    <div class="grid">
+
+      <div class="field">
+        <label>Fecha</label>
+        <input type="date" name="fecha" required>
+      </div>
+
+      <div class="field">
+        <label>Vendedor</label>
+        <select name="vendedor" required>
+            <option value="">Seleccionar Vendedor</option>
+            {% for v in vendedores %}
+                <option value="{{ v.nombre }}">{{ v.nombre }}</option>
+            {% endfor %}
+        </select>
+      </div>
+      <div class = "field">
+        <label>Cliente</label>
+        <select name="clientes" required> 
+            <option value="">Seleccionar Cliente</option>
+            {% for c in clientes %}
+            <option value="{{ c.nombre }}">{{ c.nombre }}</option>
+            {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Cotización</label>
+        <input type="text" name="cotizacion" required>
+      </div>
+
+      
+
+      <div class="field">
+        <label>Monto</label>
+        <input type="number" name="mont" required>
+      </div>
+
+      <!-- botón alineado -->
+      <div class="actions">
+        <button type="submit">Guardar Venta</button>
+      </div>
+
+    </div>
+  </div>
+</form>
+
 <form method="get">
+    <div class = "search">
     <input type ="text" name ="q" placeholder="Buscar,cliente,vendedor..." value ="{{ q }}" style="padding:8px;border: 1px solid #ccc;border-radius: 6px;">
     <button type="submit" style="padding: 10px 12px;border: none; border-radius: 8px; background-color: #b11226;color:white;">Filtrar</button>
-    <a href="/producciones" style="padding:10px 12px; border:none; border-radius: 6px;background-color:white;color:black;">Borrar</a>
+    <a href="{{ url_for('produccion') }}" style="padding:10px 12px; border:none; border-radius: 6px;background-color:white;color:black;">Borrar</a>
+    </div>
 </form>
 <table border="2" cellpadding="10" cellpadding="0" width = "100%">
     <thead class = "table-head">
@@ -48,6 +99,11 @@
 
 
 <style>
+    .search{
+        background: white;
+        border-radius: 10px;
+        padding: 10px;
+    }
     .table-head{
         color:#b11226;
     }
@@ -57,6 +113,66 @@
         margin-bottom: 10px;
 
     }
+  .form-card{
+    max-width: 720px;
+  }
+
+  .cards{
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+
+  .grid{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    gap: 14px;
+    align-items: start;
+  }
+
+  .field label{
+    display:block;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .field input, .field select{
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+  }
+
+  .actions{
+    grid-column: 3 / 4;   /* botón en la derecha */
+    display: flex;
+    align-items: end;
+    justify-content: flex-end;
+  }
+
+  .actions button{
+    width: 100%;
+    padding: 10px 15px;
+    background: #b11226;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+
+  /* responsive: en pantallas pequeñas baja a 2 y luego 1 columna */
+  @media (max-width: 900px){
+    .grid{ grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+    .actions{ grid-column: 1 / -1; }
+    .actions button{ width: auto; }
+  }
+  @media (max-width: 520px){
+    .grid{ grid-template-columns: 1fr; }
+    .actions button{ width: 100%; }
+  }
 </style>
 {% endblock %}
 </html

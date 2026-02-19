@@ -3,28 +3,107 @@
 {% block content %}
 
 <h1>Nuevas Ventas</h1>
-<form method="POST" action="{{ url_for('ventas_nuevas') }}" style="max-width:600px;">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label>Fecha</label><br>
-    <input type="date" name="fecha" required style="width:100%; padding:8px; margin-bottom:10px;"><br><br>
+<form method="POST" action="{{ url_for('ventas_nuevas') }}" class="form-card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <label>Vendedor</label><br>
-    <input type="text" name="vendedor" required style="width:100%; padding:8px; margin-bottom:10px;"><br><br>
+  <div class="cards">
+    <div class="grid">
 
-    <label>Cotizacion</label><br>
-    <input type="text" name="cotizacion" required style="width:100%; padding:8px; margin-bottom:10px;"><br><br>
+      <div class="field">
+        <label>Fecha</label>
+        <input type="date" name="fecha" required>
+      </div>
 
-    <label>Cliente</label><br>
-    <input type="text" name="cliente"  required style="width:100%; padding:8px; margin-bottom:10px;"><br><br>
+      <div class="field">
+        <label>Vendedor</label>
+        <select name="vendedor" required></select>
+      </div>
 
-    <label>Monto</label><br>
-    <input type="number" name="mont" required style="width:100%; padding:8px; margin-bottom:10px;"><br><br>
+      <div class="field">
+        <label>Cotización</label>
+        <input type="text" name="cotizacion" required>
+      </div>
 
-    <button type="submit"
-            style="padding:10px 15px; background:#b11226; color:white; border:none;">
-        Guardar Costo</button>
+      <div class="field">
+        <label>Cliente</label>
+        <select name="cliente" required></select>
+      </div>
+
+      <div class="field">
+        <label>Monto</label>
+        <input type="number" name="mont" required>
+      </div>
+
+      <!-- botón alineado -->
+      <div class="actions">
+        <button type="submit">Guardar Venta</button>
+      </div>
+
+    </div>
+  </div>
 </form>
 
-{% endblock %}
+<style>
+  .form-card{
+    max-width: 720px;
+  }
 
+  .cards{
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+
+  .grid{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    gap: 14px;
+    align-items: start;
+  }
+
+  .field label{
+    display:block;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .field input, .field select{
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+  }
+
+  .actions{
+    grid-column: 3 / 4;   /* botón en la derecha */
+    display: flex;
+    align-items: end;
+    justify-content: flex-end;
+  }
+
+  .actions button{
+    width: 100%;
+    padding: 10px 15px;
+    background: #b11226;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+
+  /* responsive: en pantallas pequeñas baja a 2 y luego 1 columna */
+  @media (max-width: 900px){
+    .grid{ grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+    .actions{ grid-column: 1 / -1; }
+    .actions button{ width: auto; }
+  }
+  @media (max-width: 520px){
+    .grid{ grid-template-columns: 1fr; }
+    .actions button{ width: 100%; }
+  }
+</style>
+{% endblock %}
 </html>

@@ -88,12 +88,14 @@ def dashboard():
 
 
 # producciones 
-@app.route("/producciones")
+@app.route("/producciones/")
 def produccion(): 
     if "user_id" not in session: 
         return redirect(url_for("login"))
     conn = get_db_connection()
     ventas = conn.execute("SELECT * FROM ventas ORDER BY id DESC").fetchall()
+    vendedores = conn.execute("SELECT id, nombre FROM vendedores ORDER BY nombre").fetchall()
+    clientes   = conn.execute("SELECT id, nombre FROM clientes ORDER BY nombre").fetchall()
     q = request.args.get("q", "").strip()
 
     if q:
@@ -113,7 +115,7 @@ def produccion():
     conn.close()
 
 
-    return render_template("producciones.html",ventas=ventas)
+    return render_template("producciones.html",ventas=ventas,vendedores=vendedores,clientes=clientes)
 
 @app.route("/ventas/monitoreo")
 def ventas_monitoreo():
@@ -261,14 +263,17 @@ def ventas_nuevas():
         conn.execute(""" INSERT INTO ventas(fecha,vendedor,cliente,cotizacion,mont) VALUES(?,?,?,?,?)""",(
             request.form["fecha"],
             request.form["vendedor"],
-            request.form["cliente"],
+            request.form["clientes"],
             request.form["cotizacion"],
             request.form["mont"]
         ))
         conn.commit()
         conn.close()
         return redirect(url_for("produccion"))
-    return render_template("ventas_nuevas.html")
+
+    vendedores= conn.execute("SELECT id, nombre FROM vendedores").fetchall()
+    clientes = conn.execute("SELECT id,nombre FROM clientes").fetchall()
+    return render_template("ventas_nuevas.html",vendedores=vendedores,clientes=clientes)
 @app.route("/producciones/<int:ventas_id>/eliminar", methods= ["POST"])
 def eliminar_venta(ventas_id):
     if "user_id" not in session: 
@@ -675,11 +680,19 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
+from werkzeug.exceptions import HTTPException
+
 @app.errorhandler(Exception)
 def handle_exception(e):
+    if isinstance(e, HTTPException):
+        return e  # deja que Flask maneje 404, 403, etc.
     print("🔥 ERROR EN:", request.path)
-    traceback.print_exc()  # imprime el traceback completo en logs
+    traceback.print_exc()
     return "Error interno (mira logs).", 500
+@app.get("/__rutas")
+def __rutas():
+    return "<br>".join(sorted([str(r) for r in app.url_map.iter_rules()]))
+
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

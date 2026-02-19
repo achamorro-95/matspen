@@ -35,13 +35,14 @@
                     {% if v.estado_general == 'finalizada' %}
                         <span class="badge badge-ok">Finalizada</span>
                     {% elif v.estado_general == 'aprobada' %}
-                        <span class="badge badge-danger">Aprobada</span>
+                        <span class="badge badge-info">Aprobada</span>
                     {% elif v.estado_general == 'en_proceso' %}
-                        <span class="badge badge-danger">En proceso</span>
+                        <span class="badge badge-warning">En proceso</span>
                     {% else %}
-                        <span class="badge badge-danger">{{ v.estado_general }}</span>
+                        <span class="badge badge-muted">{{ v.estado_general }}</span>
                     {% endif %}
-                </td>
+                </td> 
+                <td>
                     {{ v.lineas_listas }}/{{ v.total_lineas }}
                 </td>
                 <td>
@@ -68,7 +69,24 @@
         {% endif %}
     </tbody>
 </table>
+<style>
+    .badge{
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
 
+    }
+    .badge-ok{
+        background: #1f8f4a;color:white;
+
+    }
+.badge-info{background:#2d6cdf;color:#fff}
+.badge-warning{background:#f0b429;color:#111}
+.badge-muted{background:#e5e7eb;color:#111}
+
+</style>
 
 {% endblock %}
 </html>
