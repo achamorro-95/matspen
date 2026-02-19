@@ -43,6 +43,15 @@
         <label>Monto</label>
         <input type="number" name="mont" required>
       </div>
+      <div class = "field">
+        <label>Tipo</label>
+        <select name="tipo" required>
+        <option value="">Tipo</option>  
+        {% for t in tipo %}
+        <option value="{{ t.nombre }}">{{ t.nombre }}</option>       
+        {% endfor %}
+        </select>
+    </div>
 
       <!-- botón alineado -->
       <div class="actions">
@@ -67,6 +76,7 @@
             <th>Vendedor</th>
             <th>Cliente</th>
             <th>Cotizacion</th>
+            <th>Tipo</th>
             <th>Monto</th>
             <th>Accion</th>
         </tr>   
@@ -78,17 +88,14 @@
             <td>{{ v.vendedor }}</td>
             <td>{{ v.cliente }}</td>    
             <td>#{{ v.cotizacion }}</td>
+            <td>{{ v.tipo }}</td>
             <td>${{ v.mont }}</td>
             <td>
-                <form method = "post" action="{{ url_for('eliminar_venta', ventas_id=v.id) }}"
-                    
-                 onsubmit="return confirm('¿Seguro que deseas eliminar este costo?');"
-                 style="display:inline;">
-                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                 <button type="submit" style="padding: 6px; border-radius: 6px;cursor: pointer; background-color: #b11226;color: white;">
-                    Eliminar
-                 </button>
-                </form>
+               <form method="post" action="{{ url_for('eliminar_venta', ventas_id=v.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class ="eliminarbtn" type="submit">Eliminar</button>
+            </form>
+
             </td>
         </tr>
         {% endfor %}
@@ -99,6 +106,13 @@
 
 
 <style>
+  .eliminarbtn{
+    border-radius: 30px;
+    background-color: #b11226;
+    color: white;
+    border-style: none;
+    cursor: pointer;
+  }
     .search{
         background: white;
         border-radius: 10px;

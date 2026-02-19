@@ -75,7 +75,7 @@
         data-monto="{{ v.monto }}">
         <td>{{ v.fecha }}</td>
         <td>{{ v.vendedor }}</td>
-        <td>Offset</td>
+        <td>{{ v.tipo }}</td>
         <td>${{ v.monto }}</td>
         </tr>
         {% endfor %}
@@ -315,7 +315,7 @@ document.addEventListener("DOMContentLoaded", aplicarFiltros);
 
 .data-table thead{
   background: #b11226;
-  color: #fff;
+  color: #b11226;
 }
 
 .data-table th, .data-table td{

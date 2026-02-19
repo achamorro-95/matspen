@@ -22,9 +22,10 @@
         }
 
         body {
-            margin: 0;
+            margin: 10;
             background: var(--color-gris);
             color: var(--color-texto);
+    
         }
 
         a {
@@ -38,6 +39,7 @@
         .layout {
             display: flex;
             min-height: 100vh;
+
         }
 
         /* =========================
@@ -48,11 +50,14 @@
             background: var(--color-primario);
             color: white;
             padding: 20px;
+            border-radius:  50px;
+            
         }
 
         .sidebar h2 {
             margin-top: 0;
             text-align: center;
+            
         }
 
         .sidebar ul {
@@ -87,7 +92,7 @@
         }
 
         h1 {
-            margin-top: 0;
+            margin-top: 10;
         }
 
         /* =========================
@@ -157,7 +162,7 @@
             font-weight: bold;
             display: inline-block;
         }
-
+        
         .badge-danger {
             background: #e74c3c;
             color: white;
@@ -239,7 +244,9 @@
          SIDEBAR
          ========================= -->
     <aside class="sidebar">
-        <h2>MATSPEN</h2>
+        <div class="name">
+            <h2>MATSPEN</h2>
+        </div>
 
         <ul>
             <li><a href="{{ url_for('costos') }}">💰 Costos</a></li>
@@ -265,7 +272,7 @@
                     <a class = "nav-child" href="{{ url_for('produccion')}}">Proucciones Ventas</a>
                     <a class="nav-child" href="{{ url_for('ventas_monitoreo') }}">👀 Monitoreo</a>
                     <a class = "nav-child" href="{{ url_for('dashventas') }}">Dashboard Ventas</a>
-                    
+
                 </div>
             </li>
             <li><a href="{{ url_for('logout') }}">🚪 Cerrar sesión</a></li>

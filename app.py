@@ -68,7 +68,7 @@ def dashventas():
         ORDER BY nombre
     """).fetchall()
 
-    ventas = conn.execute(""" SELECT fecha AS fecha, vendedor AS vendedor, cliente AS cliente,mont AS monto FROM ventas ORDER BY id DESC""").fetchall()
+    ventas = conn.execute(""" SELECT fecha AS fecha, vendedor AS vendedor, cliente AS cliente,mont AS monto,tipo AS tipo FROM ventas ORDER BY id DESC""").fetchall()
     return render_template("dashboard_ventas.html",vendedores=vendedores,ventas=ventas)
 
 @app.route("/dashboard")
@@ -101,7 +101,7 @@ def dashboard():
         ventas_detalle=ventas_detalle,
         vendedores=vendedores
     )
-@app.route("/producciones/<int:prod_id>/eliminar", methods=["POST"])
+@app.route("/dashboard/<int:prod_id>/eliminar", methods=["POST"])
 def eliminar_produccion(prod_id):
     if "user_id" not in session:
         return redirect(url_for("login"))
@@ -117,7 +117,7 @@ def eliminar_produccion(prod_id):
 
 
 # producciones 
-@app.route("/producciones/")
+@app.route("/producciones")
 def produccion(): 
     if "user_id" not in session: 
         return redirect(url_for("login"))
@@ -125,6 +125,7 @@ def produccion():
     ventas = conn.execute("SELECT * FROM ventas ORDER BY id DESC").fetchall()
     vendedores = conn.execute("SELECT id, nombre FROM vendedores ORDER BY nombre").fetchall()
     clientes   = conn.execute("SELECT id, nombre FROM clientes ORDER BY nombre").fetchall()
+    tipo = conn.execute("SELECT id, nombre FROM tipos_impresion ORDER BY nombre").fetchall()
     q = request.args.get("q", "").strip()
 
     if q:
@@ -144,7 +145,7 @@ def produccion():
     conn.close()
 
 
-    return render_template("producciones.html",ventas=ventas,vendedores=vendedores,clientes=clientes)
+    return render_template("producciones.html",ventas=ventas,vendedores=vendedores,clientes=clientes,tipo=tipo)
 
 @app.route("/ventas/monitoreo")
 def ventas_monitoreo():
@@ -386,7 +387,7 @@ def nuevo_costo():
         troquel    = float(request.form.get("troquel", 0) or 0)
         barniz     = request.form.get("barniz") == "si"
         material = conn.execute("SELECT * FROM materiales WHERE id = ?", (material_id,)).fetchone()
-
+        ambascaras = request.form.get("ambascaras") == "si"
 
         
    
@@ -429,8 +430,11 @@ def nuevo_costo():
         costo_total_material = cantidad_resmas * costo_resmas
 
         costo_barniz = (((190 / 11000) / alcanzan_medio_pliego) * imp_total) if barniz else 0
-        costo_tinta  = ((70 / 11000) / alcanzan_medio_pliego) * imp_total
+        if ambascaras == "si":
 
+            costo_tinta  = (((70 / 11000) / alcanzan_medio_pliego) * imp_total)*2
+        else : 
+            costo_tinta  = ((70 / 11000) / alcanzan_medio_pliego) * imp_total
         costo_plancha = 28
         cantidad_plancha = math.ceil(artes / alcanzan_medio_pliego) if artes > 0 else 0
         costo_total_plancha = cantidad_plancha * costo_plancha
@@ -489,6 +493,7 @@ def nuevo_costo():
     "cantidad": imp_total,
     "troquel": troquel,
     "barniz": "Si" if barniz else "No",
+    "ambascaras" : "Si"if ambascaras else "No",
 
     # texto para tabla
     "cliente": cliente_nombre,
