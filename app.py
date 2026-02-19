@@ -689,9 +689,7 @@ def handle_exception(e):
     print("🔥 ERROR EN:", request.path)
     traceback.print_exc()
     return "Error interno (mira logs).", 500
-@app.get("/__rutas")
-def __rutas():
-    return "<br>".join(sorted([str(r) for r in app.url_map.iter_rules()]))
+
 
 
 if __name__ == "__main__":
