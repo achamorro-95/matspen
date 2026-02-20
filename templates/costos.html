@@ -6,14 +6,30 @@
 
 <h1>Costos / Compras</h1>
 
-<a href="{{ url_for('agregar_costo') }}"
-   style="display:inline-block; margin-bottom:15px;
-          padding:10px; background:#b11226;
-          color:white; text-decoration:none;">
-   + Nuevo Costo
-</a>
-
-<table border="1" cellpadding="10" cellspacing="0" width="100%">
+<button onclick="abrirModal()" style="margin-bottom: 15px; padding: 10px; background: #b11226; color:white;border:none; cursor: pointer;border-radius: 15px;">+Nuevo Costo</button>
+    <div id ="modalCosto" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal()">&times;</span>
+            <h2>Nuevo Costo</h2>
+            <form method="POST" action = "{{ url_for('agregar_costo') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label>Material</label>
+                <input type="text" name="material" required>
+                
+                <label>Porveedor</label>
+                <input type="text" name="proveedor" required>
+                <label>Factura</label>
+                <input type="text" name="factura" required>
+                <label>Monto</label>
+                <input type="number" step="0.01" name="monto" required>
+                <label>Fecha</label>
+                <input type="date" name="fecha" required>
+                <br><br>
+                <button type="submit">Guardar</button>
+            </form>
+        </div>
+    </div>
+    <table border="1" cellpadding="10" cellspacing="0" width="100%">
     <thead>
         <tr style="background:#f2f2f2;">
             <th>Material</th>
@@ -53,5 +69,52 @@
         {% endfor %}
     </tbody>
 </table>
+
+<style>
+    .modal{
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.5);
+        z-index: 9999;
+    }
+    .modal-content{
+        background: #fff;
+        width: 420px;
+        max-width: 90%;
+        padding:20px;
+        border-radius: 12px;
+        position: relative;
+    }
+     .modal-content input{
+    width:100%;
+    padding:8px;
+    margin:6px 0 12px 0;
+    box-sizing:border-box;
+  }
+  .close{
+    position:absolute;
+    top:10px;
+    right:12px;
+    font-size:24px;
+    cursor:pointer;
+  }
+</style>
+<script>
+    function abrirModal(){
+        document.getElementById("modalCosto").style.display ="block";
+
+    }
+    function cerrarModal(){
+        document.getElementById("modalCosto").style.display ="none";
+
+    }
+    window.onclick = function(event){
+        let modal = document.getElementById("modalCosto");
+        if(event.target == modal){
+            modal.style.display = "none";
+        }
+    }
+</script>
 
 {% endblock %}

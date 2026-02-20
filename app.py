@@ -73,6 +73,9 @@ def dashventas():
 
 @app.route("/dashboard")
 def dashboard():
+    if "user_id" not in session: 
+        return redirect(url_for("login"))
+    
     conn = get_db_connection()
 
     # 1) Tabla principal (lo que usa el dashboard)
@@ -333,6 +336,18 @@ def costos():
     costos = conn.execute("SELECT * FROM costos ORDER BY id DESC").fetchall()
     conn.close()
     return render_template("costos.html", costos=costos)
+
+@app.route("/costos/<int:item_id>/eliminar", methods=["POST"])
+def eliminar(item_id): 
+    if "user_id" not in session: 
+        return redirect(url_for("login"))
+    
+    conn = get_db_connection()
+    conn.execute("DELETE FROM costos WHERE id =?",(item_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("costos"))
+
 
 
 @app.route("/costos/agregar", methods=["GET", "POST"])
