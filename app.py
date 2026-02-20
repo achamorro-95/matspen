@@ -573,6 +573,8 @@ from datetime import datetime
 
 @app.route("/costeo/guardar", methods=["POST"])
 def guardar_costeo():
+    if "user_id" not in session: 
+        return redirect(url_for("login"))
     conn = get_db_connection()
     costos_calculados = session.get("costos_calculados", [])
     for c in costos_calculados:
@@ -721,6 +723,80 @@ def eliminar_cotizacion(cot_id):
     return redirect("/cotizaciones")
 
 
+@app.route('/clientes')
+def clientes():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    conn = get_db_connection()
+    clientes = conn.execute("SELECT * FROM clientes ORDER BY id DESC").fetchall()
+    conn.close()
+    
+
+    return render_template("clientes.html", clientes=clientes)
+
+
+@app.route('/agregar_clientes', methods=["POST"])
+def agregar_clientes():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    if request.method == "POST":
+        nombre = request.form["nombre"]
+        contacto = request.form["contacto"]
+        telefono = request.form["telefono"]
+
+        conn = get_db_connection()
+        conn.execute("INSERT INTO clientes (nombre,contacto, telefono) VALUES (?, ?, ?)",
+                     (nombre,contacto,telefono))
+        conn.commit()
+        conn.close()
+        return redirect(url_for("clientes"))
+    return render_template('clientes.html')
+
+@app.route("/clientes/<int:item_id>/eliminar", methods=["POST"])
+def eliminar_cliente(item_id): 
+    if "user_id" not in session: 
+        return redirect(url_for("login"))
+    
+    conn = get_db_connection()
+    conn.execute("DELETE FROM clientes WHERE id =?",(item_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("clientes"))
+@app.route('/vendedores')
+def vendedores():
+    if "user_id" not in session: 
+        return redirect(url_for('login'))
+    conn =get_db_connection()
+    vendedores = conn.execute("SELECT * FROM vendedores ORDER BY id DESC").fetchall()
+    conn.close()
+
+    return render_template('vendedores.html',vendedores=vendedores)
+
+@app.route('/agregar_vendedor',methods=["POST"])
+def agregar_vendedor():
+    if "user_id" not in session:
+        return redirect(url_for('login'))\
+    
+    if request.method =="POST": 
+        nombre = request.form('nombre')
+        telefono = request.form('telefono')
+        activo = request.form('activo')
+        conn = get_db_connection()
+        conn.execute("INSERT INTO vendedores (nombre,telefono,activo) VALUES (?,?,?)",(nombre,telefono,activo))
+        conn.commit()
+        conn.close()
+    return render_template('vendedores.html')
+
+@app.route("/vendedores/<int:item_id>/eliminar", methods=["POST"])
+def eliminar_vendedor(item_id):
+    if "user_id" not in session: 
+        return redirect(url_for('login'))
+    conn = get_db_connection()
+    conn.execute("DELETE FROM vendedores WHERE id =?",(item_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("vendedores"))
+     
 # =====================================================
 # LOGOUT
 # =====================================================
@@ -738,8 +814,6 @@ def handle_exception(e):
     print("🔥 ERROR EN:", request.path)
     traceback.print_exc()
     return "Error interno (mira logs).", 500
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)

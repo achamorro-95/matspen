@@ -1,306 +1,323 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>{% block title %}MATSPEN{% endblock %}</title>
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}MATSPEN{% endblock %}</title>
 
-    <!-- =========================
-         ESTILOS GENERALES
-         ========================= -->
-    <style>
-        :root {
-            --color-primario: #b11226;
-            --color-secundario: #ffffff;
-            --color-gris: #f4f4f4;
-            --color-texto: #333;
-            --radio: 8px;
-        }
+        <!-- =========================
+            ESTILOS GENERALES
+            ========================= -->
+        <style>
+            :root {
+                --color-primario: #b11226;
+                --color-secundario: #ffffff;
+                --color-gris: #f4f4f4;
+                --color-texto: #333;
+                --radio: 8px;
+            }
 
-        * {
-            box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
-        }
+            * {
+                box-sizing: border-box;
+                font-family: Arial, Helvetica, sans-serif;
+            }
 
-        body {
-            margin: 10;
-            background: var(--color-gris);
-            color: var(--color-texto);
-    
-        }
+            body {
+                margin: 10;
+                background: var(--color-gris);
+                color: var(--color-texto);
+        
+            }
 
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
 
-        /* =========================
-           LAYOUT
-           ========================= */
-        .layout {
-            display: flex;
-            min-height: 100vh;
+            /* =========================
+            LAYOUT
+            ========================= */
+            .layout {
+                display: flex;
+                min-height: 100vh;
 
-        }
+            }
 
-        /* =========================
-           SIDEBAR
-           ========================= */
-        .sidebar {
-            width: 240px;
-            background: var(--color-primario);
+            /* =========================
+            SIDEBAR
+            ========================= */
+            .sidebar {
+                width: 240px;
+                background: var(--color-primario);
+                color: white;
+                padding: 20px;
+                border-radius:  50px;
+                
+            }
+
+            .sidebar h2 {
+                margin-top: 0;
+                text-align: center;
+                
+            }
+
+            .sidebar ul {
+                list-style: none;
+                padding: 0;
+                margin-top: 30px;
+            }
+
+            .sidebar ul li {
+                margin-bottom: 10px;
+            }
+
+            .sidebar ul li a {
+                display: block;
+                padding: 10px 14px;
+                border-radius: var(--radio);
+                color: white;
+                font-size: 14px;
+            }
+
+            .sidebar ul li a:hover {
+                background: rgba(255,255,255,0.15);
+            }
+
+            /* =========================
+            CONTENT
+            ========================= */
+            .content {
+                flex: 1;
+                padding: 30px;
+                background: var(--color-gris);
+            }
+
+            h1 {
+                margin-top: 10;
+            }
+
+            /* =========================
+            TABLAS
+            ========================= */
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                background: white;
+                border-radius: var(--radio);
+                overflow: hidden;
+            }
+
+            th, td {
+                padding: 12px;
+                border-bottom: 1px solid #eee;
+                font-size: 14px;
+                text-align: left;
+            }
+
+            th {
+                background: #f8f8f8;
+                font-weight: bold;
+            }
+
+            tr:last-child td {
+                border-bottom: none;
+            }
+
+            /* =========================
+            ESTADOS
+            ========================= */
+            .estado-entregado {
+                color: #2ecc71;
+                font-weight: bold;
+            }
+
+            .estado-pendiente {
+                color: #e67e22;
+                font-weight: bold;
+            }
+
+            /* =========================
+            BOTONES
+            ========================= */
+            .btn-entregar {
+                background-color: #2ecc71;
+                color: #fff;
+                border: none;
+                padding: 6px 12px;
+                border-radius: var(--radio);
+                cursor: pointer;
+                font-size: 13px;
+            }
+
+            .btn-entregar:hover {
+                background-color: #27ae60;
+            }
+
+            /* =========================
+            BADGES / TAGS
+            ========================= */
+            .badge {
+                padding: 4px 8px;
+                border-radius: 12px;
+                font-size: 12px;
+                font-weight: bold;
+                display: inline-block;
+            }
+            
+            .badge-danger {
+                background: #e74c3c;
+                color: white;
+            }
+
+            .badge-ok {
+                background: #2ecc71;
+                color: white;
+            }
+            .nav-group { margin-bottom: 10px; }
+
+            .nav-parent{
+            width:100%;
+            background: transparent;
+            border: none;
             color: white;
-            padding: 20px;
-            border-radius:  50px;
-            
-        }
-
-        .sidebar h2 {
-            margin-top: 0;
-            text-align: center;
-            
-        }
-
-        .sidebar ul {
-            list-style: none;
-            padding: 0;
-            margin-top: 30px;
-        }
-
-        .sidebar ul li {
-            margin-bottom: 10px;
-        }
-
-        .sidebar ul li a {
-            display: block;
             padding: 10px 14px;
             border-radius: var(--radio);
-            color: white;
-            font-size: 14px;
-        }
-
-        .sidebar ul li a:hover {
-            background: rgba(255,255,255,0.15);
-        }
-
-        /* =========================
-           CONTENT
-           ========================= */
-        .content {
-            flex: 1;
-            padding: 30px;
-            background: var(--color-gris);
-        }
-
-        h1 {
-            margin-top: 10;
-        }
-
-        /* =========================
-           TABLAS
-           ========================= */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: var(--radio);
-            overflow: hidden;
-        }
-
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-            text-align: left;
-        }
-
-        th {
-            background: #f8f8f8;
-            font-weight: bold;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* =========================
-           ESTADOS
-           ========================= */
-        .estado-entregado {
-            color: #2ecc71;
-            font-weight: bold;
-        }
-
-        .estado-pendiente {
-            color: #e67e22;
-            font-weight: bold;
-        }
-
-        /* =========================
-           BOTONES
-           ========================= */
-        .btn-entregar {
-            background-color: #2ecc71;
-            color: #fff;
-            border: none;
-            padding: 6px 12px;
-            border-radius: var(--radio);
             cursor: pointer;
+            font-size: 14px;
+
+            display:flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: left;
+            }
+
+            .nav-parent:hover{
+            background: rgba(255,255,255,0.15);
+            }
+
+            .nav-children{
+            display:none;
+            margin-top: 6px;
+            padding-left: 10px;
+            }
+
+            .nav-child{
+            display:block;
+            padding: 9px 12px;
+            border-radius: var(--radio);
+            color: white;
             font-size: 13px;
-        }
+            margin: 6px 0;
+            background: rgba(0,0,0,0.12);
+            }
 
-        .btn-entregar:hover {
-            background-color: #27ae60;
-        }
+            .nav-child:hover{
+            background: rgba(255,255,255,0.18);
+            }
 
-        /* =========================
-           BADGES / TAGS
-           ========================= */
-        .badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-            display: inline-block;
-        }
-        
-        .badge-danger {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .badge-ok {
-            background: #2ecc71;
-            color: white;
-        }
-        .nav-group { margin-bottom: 10px; }
-
-        .nav-parent{
-        width:100%;
-        background: transparent;
-        border: none;
-        color: white;
-        padding: 10px 14px;
-        border-radius: var(--radio);
-        cursor: pointer;
-        font-size: 14px;
-
-        display:flex;
-        justify-content: space-between;
-        align-items: center;
-        text-align: left;
-        }
-
-        .nav-parent:hover{
-        background: rgba(255,255,255,0.15);
-        }
-
-        .nav-children{
-        display:none;
-        margin-top: 6px;
-        padding-left: 10px;
-        }
-
-        .nav-child{
-        display:block;
-        padding: 9px 12px;
-        border-radius: var(--radio);
-        color: white;
-        font-size: 13px;
-        margin: 6px 0;
-        background: rgba(0,0,0,0.12);
-        }
-
-        .nav-child:hover{
-        background: rgba(255,255,255,0.18);
-        }
-
-        .chev{
-        transition: transform .2s ease;
-        }
-        .badge{
-            display:inline-block;
-            padding:4px 10px;
-            border-radius:999px;
-            font-size:12px;
-            font-weight:600;
-            border:none;
-}
-.badge-ok{background:#1f8f4a;color:#fff}
-.badge-info{background:#2d6cdf;color:#fff}
-.badge-warning{background:#f0b429;color:#111}
-.badge-muted{background:#e5e7eb;color:#111}
-
-
-    </style>
-
-    {% block extra_css %}{% endblock %}
-</head>
-
-<body>
-
-<div class="layout">
-
-    <!-- =========================
-         SIDEBAR
-         ========================= -->
-    <aside class="sidebar">
-        <div class="name">
-            <h2>MATSPEN</h2>
-        </div>
-
-        <ul>
-            <li><a href="{{ url_for('costos') }}">💰 Costos</a></li>
-            <li><a href="{{ url_for('nuevo_costo') }}">📐 Costeo</a></li>
-            
-            <li class="nav-group">
-                 <button class="nav-parent" type="button"
-                        onclick="toggleMenu('coti_venta', 'dash_venta')">
-                        <span> Cotizaciones</span>
-                        <span class = "dash" id="dahs_venta">▾</span>
-                 </button>
-                 <div id = "coti_venta" class = "nav-children">
-                    <a class = "nav-child" href="{{ url_for('cotizaciones')}}">Cotizaciones</a>
-                   <a class ="nav-child" href="{{ url_for('dashboard') }}">📊 Dashboard</a>
-                 </div>
-                <button class="nav-parent" type="button"
-                        onclick="toggleMenu('ventas-menu', 'chev-ventas')">
-                    <span>💼 Ventas</span>
-                    <span class="chev" id="chev-ventas">▾</span>
-                </button>
-                
-                <div id="ventas-menu" class="nav-children">
-                    <a class = "nav-child" href="{{ url_for('produccion')}}">Proucciones Ventas</a>
-                    <a class="nav-child" href="{{ url_for('ventas_monitoreo') }}">👀 Monitoreo</a>
-                    <a class = "nav-child" href="{{ url_for('dashventas') }}">Dashboard Ventas</a>
-
-                </div>
-            </li>
-            <li><a href="{{ url_for('logout') }}">🚪 Cerrar sesión</a></li>
-        </ul>
-    </aside>
-
-    <!-- =========================
-         CONTENIDO
-         ========================= -->
-    <main class="content">
-        {% block content %}{% endblock %}
-    </main>
-
-</div>
-
-{% block extra_js %}{% endblock %}
-    
-<script>
-    function toggleMenu(MenuId,ChevId){
-        const menu = document.getElementById(MenuId);
-        const chev = document.getElementById(ChevId);   
-
-        const open = menu.style.display === "block";
-        menu.style.display = open ? "none" : "block"; 
-        chev.style.transform = open ? "rotate(0deg)" : "rotate(180deg)";
-
+            .chev{
+            transition: transform .2s ease;
+            }
+            .badge{
+                display:inline-block;
+                padding:4px 10px;
+                border-radius:999px;
+                font-size:12px;
+                font-weight:600;
+                border:none;
     }
-</script>
-</body>
+    .badge-ok{background:#1f8f4a;color:#fff}
+    .badge-info{background:#2d6cdf;color:#fff}
+    .badge-warning{background:#f0b429;color:#111}
+    .badge-muted{background:#e5e7eb;color:#111}
 
-</html>
+
+        </style>
+
+        {% block extra_css %}{% endblock %}
+    </head>
+
+    <body>
+
+    <div class="layout">
+
+        <!-- =========================
+            SIDEBAR
+            ========================= -->
+        <aside class="sidebar">
+            <div class="name">
+                <h2>MATSPEN</h2>
+            </div>
+
+            <ul>
+                <li><a href="{{ url_for('costos') }}">💰 Costos</a></li>
+                <li><a href="{{ url_for('nuevo_costo') }}">📐 Costeo</a></li>
+                
+                <li class="nav-group">
+                    <button class="nav-parent" type="button"
+                            onclick="toggleMenu('coti_venta', 'dash_venta')">
+                            <span> Cotizaciones</span>
+                            <span class = "dash" id="dahs_venta">▾</span>
+                    </button>
+                    <div id = "coti_venta" class = "nav-children">
+                        <a class = "nav-child" href="{{ url_for('cotizaciones')}}">Cotizaciones</a>
+                    <a class ="nav-child" href="{{ url_for('dashboard') }}">📊 Dashboard</a>
+                    </div>
+                    <button class="nav-parent" type="button"
+                            onclick="toggleMenu('ventas-menu', 'chev-ventas')">
+                        <span>💼 Ventas</span>
+                        <span class="chev" id="chev-ventas">▾</span>
+                    </button>
+                    
+                    <div id="ventas-menu" class="nav-children">
+                        <a class = "nav-child" href="{{ url_for('produccion')}}">Proucciones Ventas</a>
+                        <a class="nav-child" href="{{ url_for('ventas_monitoreo') }}">👀 Monitoreo</a>
+                        <a class = "nav-child" href="{{ url_for('dashventas') }}">Dashboard Ventas</a>
+
+                    </div>
+                    <button class="nav-parent" type="button" onclick="toggleMenu2('mostrar_menu','esconder_menu')">
+                        <span>Catalogos</span>
+                        <span class="cat" id="esconder_menu">▾</span>
+                    </button>
+                    <div class = "nav-children" id="mostrar_menu"> 
+                        <a class="nav-child" href="{{ url_for('clientes')}}">Clientes</a>
+                        <a class ="nav-child" href="{{ url_for('vendedores')}}">Vendedores</a>
+                    </div>
+                </li>
+                <li><a href="{{ url_for('logout') }}">🚪 Cerrar sesión</a></li>
+            </ul>
+        </aside>
+
+        <!-- =========================
+            CONTENIDO
+            ========================= -->
+        <main class="content">
+            {% block content %}{% endblock %}
+        </main>
+
+    </div>
+
+    {% block extra_js %}{% endblock %}
+        
+    <script>
+        function toggleMenu(MenuId,ChevId){
+            const menu = document.getElementById(MenuId);
+            const chev = document.getElementById(ChevId);   
+
+            const open = menu.style.display === "block";
+            menu.style.display = open ? "none" : "block"; 
+            chev.style.transform = open ? "rotate(0deg)" : "rotate(180deg)";
+
+        }
+        function toggleMenu2(MostrarMenu,EsconderMenu){
+            const mostrar = document.getElementById(MostrarMenu);
+            const esconder = document.getElementById(EsconderMenu);
+
+            const open = mostrar.style.display ==="block";
+            mostrar.style.display = open ? "none" : "block"; 
+            esconder.style.transform = open ? "rotate(0deg)" : "rotate(180deg)";
+            
+        }
+    </script>
+    </body>
+
+    </html>

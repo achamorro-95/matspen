@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Clientes{% endblock %}
+{% block content %}
+
+<h1>Clientes</h1>
+
+<button onclick="abrirModal()" class="agregarnuevo">+ Nuevo Cliente</button>
+
+<!-- MODAL -->
+<div id="modalNuevo" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="cerrarModal()">&times;</span>
+
+    <h2>Nuevo Cliente</h2>
+    <form method="post" action="{{ url_for('agregar_clientes') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <label>Nombre</label>
+      <input type="text" name="nombre" required>
+
+      <label>Contacto</label>
+      <input type="text" name="contacto" required>
+
+      <label>Teléfono</label>
+      <input type="text" name="telefono" required>
+
+      <br><br>
+      <button class ="guardar" type="submit">Guardar</button>
+    </form>
+  </div>
+</div>
+
+<!-- TABLA -->
+<table border="1" cellpadding="10" cellspacing="0" width="100%">
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Contacto</th>
+      <th>Teléfono</th>
+      <th>Accion</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for c in clientes %}
+    <tr>
+      <td>{{ c.nombre }}</td>
+      <td>{{ c.contacto }}</td>
+      <td>{{ c.telefono }}</td>
+      <td>
+        <form method="POST" action="/clientes/{{ c['id'] }}/eliminar"
+      onsubmit="return confirm('Seguro quieres eliminar');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
+                        style="padding:6px 10px; border:none; border-radius:6px;
+                                background:#c62828; color:white; cursor:pointer;">
+                    Eliminar
+                </button>
+    
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<style>
+    .guardar{
+        background: #c62828;
+        color:#fff;
+        border-radius: 10px;
+        padding:10px;
+        border: none;
+        cursor: pointer;
+        position: center;
+    }
+    .agregarnuevo{
+        background: #c62828;
+        color: white;
+        border-radius: 10px;
+        padding: 10px;
+        border: none;
+        cursor: pointer;
+    }
+    .modal{
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, .5);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+
+    }
+    .modal-content{
+        background:#fff;
+        width: 600px;
+        max-width: 90%;
+        padding: 20px;
+        border-radius: 12px;
+        position: relative;
+        color:#c62828;
+
+        
+    }
+    .modal-content input{
+        width: 100px;
+        padding: 5px;
+        margin:6px 0 12px 0;
+        box-sizing: border-box;
+    }
+    .close{
+        position: absolute;
+        top:10px;
+        right:12px;
+        font-size: 24px;
+        cursor: pointer;
+    }
+    thead th{
+        background: #c62828;
+        color:#fff;
+    }
+</style>
+<script>
+function abrirModal(){
+  document.getElementById('modalNuevo').style.display = "flex";
+}
+function cerrarModal(){
+  document.getElementById('modalNuevo').style.display = "none";
+}
+window.onclick = function(event){
+  const modal = document.getElementById("modalNuevo");
+  if(event.target === modal){
+    modal.style.display = "none";
+  }
+}
+</script>
+{% endblock %}
