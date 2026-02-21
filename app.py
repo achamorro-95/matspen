@@ -152,8 +152,9 @@ def produccion():
 
 @app.route("/ventas/monitoreo")
 def ventas_monitoreo():
-    if "user_id" not in session :
+    if "user_id" not in session:
         return redirect(url_for("login"))
+
     conn = get_db_connection()
 
     rows = conn.execute("""
@@ -162,6 +163,7 @@ def ventas_monitoreo():
           v.cliente,
           v.vendedor,
           v.fecha,
+          v.estado AS estado_general,
           (SELECT COUNT(*) FROM produccion_lineas pl
             WHERE pl.venta_id = v.id AND pl.estado = 'listo') AS lineas_listas,
           (SELECT COUNT(*) FROM produccion_lineas pl
@@ -171,7 +173,7 @@ def ventas_monitoreo():
     """).fetchall()
 
     conn.close()
-    return render_template("monitoreo.html", ventas=rows) 
+    return render_template("monitoreo.html", ventas=rows)
 @app.route("/ventas/<int:venta_id>/produccion")
 def ventas_produccion(venta_id):
     if "user_id" not in session: 
@@ -730,10 +732,11 @@ def clientes():
     conn = get_db_connection()
     clientes = conn.execute("SELECT * FROM clientes ORDER BY id DESC").fetchall()
     vendedores = conn.execute("SELECT * FROM vendedores ORDER BY id DESC").fetchall()
+    materiales = conn.execute("SELECT * FROM materiales ORDER BY id DESC").fetchall()
     conn.close()
     
 
-    return render_template("clientes.html", clientes=clientes,vendedores=vendedores)
+    return render_template("clientes.html", clientes=clientes,vendedores=vendedores,materiales=materiales)
 
 
 @app.route('/agregar_clientes', methods=["POST"])
@@ -790,7 +793,33 @@ def eliminar_vendedor(item_id):
     conn.commit()
     conn.close()
     return redirect(url_for("clientes"))
-     
+@app.route("/materiales/<int:item_id>/eliminar", methods =["POST"])
+def eliminar_material(item_id):
+    if "user_id" not in session: 
+        return redirect(url_for("login"))
+    conn = get_db_connection()
+    conn.execute("DELETE FROM materiales WHERE id =?",(item_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("clientes"))
+@app.route("/agregar_material", methods=["post"])
+def agregar_material():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+   
+    if request.method =="POST":
+        nombre = request.form.get('material')
+        gramaje = request.form.get('gramaje')
+        pliegos = request.form.get("pliegos_resma")
+        costo = request.form.get('costo')
+        ancho = request.form.get('ancho')
+        alto = request.form.get('alto')
+        tipos = request.form.get('tipo')
+        conn = get_db_connection()
+        conn.execute("INSERT INTO materiales(nombre,gramaje,pliegos_por_resma,costo_resma,ancho_pl,altos_pl,tipo_impresion_id) VALUES (?,?,?,?,?,?,?)",(nombre,gramaje,pliegos,costo,ancho,alto,tipos))
+        conn.commit()
+        conn.close()
+    return redirect(url_for("clientes"))
 # =====================================================
 # LOGOUT
 # =====================================================

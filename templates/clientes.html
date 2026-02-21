@@ -7,6 +7,7 @@
 <div class="seleccion-group">
   <button type="button" id="btnClientes" class="active" >Clientes</button>
   <button type="button" id="btnVendedores" >Vendedores</button>
+  <button type ="button" id ="btnMateriales">Materiales</button>
 </div>
 <div class="separacion"></div>
 <!-- CONTENIDO CLIENTES -->
@@ -121,10 +122,102 @@
 
 </div>
 
+<div id="seccionMateriales" style="display: none;">
+  <div class = "container2">
+   <form method="post" action="{{ url_for('agregar_material') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>Nombre:</label>
+      <input type="text" name="material" required>
+
+      <label>Gramaje:</label>
+      <input type="text" name="gramaje" required>
+
+      <label>Pliegos Por Resma:</label>
+      <input type="text" name="pliegos_resma" required>
+      <br><br>
+      <label>Costo de Resma:</label>
+      <input type="number" name="costo" required>
+
+      <label>Ancho Material:</label>
+      <input type="number" name="ancho" required>
+
+      <label>Alto Material:</label>
+      <input type="number" name ="alto" required>
+      <br><br
+      <label>Tipo de Impresion:</label>
+      <input type="number" name ="tipo" required>
+
+       <br><br>
+        <button class="guardar" type="submit">Guardar</button>
+   </form>
+  </div>
+
+   <table broder="1" cellpadding="10" cellpadding="0" width = "100%">
+    <thead>
+      <tr>
+        <th>Nombre:</th>
+        <th>Gramaje:</th>
+        <th>Pliegos Por Resma</th>
+        <th>Costos por Resma</th>
+        <th>Ancho Material</th>
+        <th>Alto Material</th>
+        <th>Tipo de Impresion</th>
+        <th>Accion</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in materiales %}
+      <tr>
+        <td>{{ m.nombre }}</td>
+        <td>{{ m.gramaje }}</td>
+        <td>{{ m.pliegos_por_resma }}</td>
+        <td>{{ m.costo_resma }}</td>
+        <td>{{ m.ancho_pl }}</td>
+        <td>{{ m.altos_pl }}</td>
+        <td>{{ m.tipo_impresion_id }}</td>
+        <td>
+        <form method="POST" action="/materiales/{{ m['id'] }}/eliminar"
+                onsubmit="return confirm('Seguro quieres eliminar?');">
+                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
+                        style="padding:6px 10px; border:none; border-radius:6px;
+                                background:#c62828; color:white; cursor:pointer;">
+                    Eliminar
+                </button>
+
+        </form>
+        </td>
+        
+      </tr>
+      {% endfor %}
+    </tbody>
+
+   </table>
+</div>
+
 <!-- TABLA -->
 
 
 <style>
+  .container2{
+    background: none;
+    display: flex;
+    padding: 10px;
+  }
+  .container2 form{
+   
+    align-items: center;
+  }
+  
+  .container2 form input{
+   border: none;              /* quitar todos los bordes */
+    border-bottom: 2px solid #ccc;  /* solo línea abajo */
+    outline: none;             /* quitar borde azul al hacer click */
+    padding: 8px 4px;
+    background: transparent;
+    width: 100px;
+    ;
+  }
   .seleccion-group button{
 
   
@@ -225,28 +318,47 @@
 
 const btnClientes = document.getElementById("btnClientes");
 const btnVendedores = document.getElementById("btnVendedores");
+const btnMateriales = document.getElementById("btnMateriales")
 
 const seccionClientes = document.getElementById("seccionClientes");
 const seccionVendedores = document.getElementById("seccionVendedores");
+const seccionMateriales = document.getElementById("seccionMateriales");
 
 const titulo = document.getElementById("tituloSeccion");
 
 btnClientes.addEventListener("click", () => {
     seccionClientes.style.display = "block";
     seccionVendedores.style.display = "none";
+    seccionMateriales.style.display= "none";
     titulo.textContent = "Clientes";
 
     btnClientes.classList.add("active");
     btnVendedores.classList.remove("active");
+    btnMateriales.classList.remove("active")
 });
 
 btnVendedores.addEventListener("click", () => {
     seccionClientes.style.display = "none";
     seccionVendedores.style.display = "block";
+    seccionMateriales.style.display="none";
     titulo.textContent = "Vendedores";
 
     btnVendedores.classList.add("active");
     btnClientes.classList.remove("active");
+    btnMateriales.classList.remove("active");
 });
+
+btnMateriales.addEventListener("click",()=>{
+  seccionClientes.style.display="none";
+  seccionVendedores.style.display="none";
+  seccionMateriales.style.display="block";
+   titulo.textContent = "Materiales";
+
+  btnVendedores.classList.remove("active");
+  btnClientes.classList.remove("active");
+  btnMateriales.classList.add("active");
+
+
+})
 </script>
 {% endblock %}
