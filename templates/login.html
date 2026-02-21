@@ -22,6 +22,8 @@
             border-radius: 10px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.15);
             border-top: 6px solid #b11226;
+            overflow: hidden;
+            position: relative;
         }
 
         .login-card h2 {
@@ -68,6 +70,37 @@
             text-align: center;
             font-size: 12px;
             color: #777;
+        }
+        .login-card::before {
+            content: "";
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(45deg, #b11226, #ff4d6d, #b11226);
+            top: -50%;
+            left: -50%;
+            animation: rotate 4s linear infinite;
+            z-index: 0;
+        }
+        .login-card * {
+            position: relative;
+            z-index: 1;
+        }
+        @keyframes rotate{
+            from{
+                transform: rotate(0deg);
+
+            }
+            to{
+                transform: rotate(360deg);
+            }
+        }
+        .login-card::after{
+            content: "";
+            position: absolute;
+            inset: 10px;
+            border-radius: 13px;
+
         }
     </style>
 </head>

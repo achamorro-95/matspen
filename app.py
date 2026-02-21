@@ -729,10 +729,11 @@ def clientes():
         return redirect(url_for("login"))
     conn = get_db_connection()
     clientes = conn.execute("SELECT * FROM clientes ORDER BY id DESC").fetchall()
+    vendedores = conn.execute("SELECT * FROM vendedores ORDER BY id DESC").fetchall()
     conn.close()
     
 
-    return render_template("clientes.html", clientes=clientes)
+    return render_template("clientes.html", clientes=clientes,vendedores=vendedores)
 
 
 @app.route('/agregar_clientes', methods=["POST"])
@@ -743,14 +744,15 @@ def agregar_clientes():
         nombre = request.form["nombre"]
         contacto = request.form["contacto"]
         telefono = request.form["telefono"]
+        activo = request.form["activo"]
 
         conn = get_db_connection()
-        conn.execute("INSERT INTO clientes (nombre,contacto, telefono) VALUES (?, ?, ?)",
-                     (nombre,contacto,telefono))
+        conn.execute("INSERT INTO clientes (nombre,contacto, telefono,activo) VALUES (?, ?, ?,?)",
+                     (nombre,contacto,telefono,activo))
         conn.commit()
         conn.close()
-        return redirect(url_for("clientes"))
-    return render_template('clientes.html')
+    return redirect(url_for("clientes"))
+    
 
 @app.route("/clientes/<int:item_id>/eliminar", methods=["POST"])
 def eliminar_cliente(item_id): 
@@ -762,15 +764,7 @@ def eliminar_cliente(item_id):
     conn.commit()
     conn.close()
     return redirect(url_for("clientes"))
-@app.route('/vendedores')
-def vendedores():
-    if "user_id" not in session: 
-        return redirect(url_for('login'))
-    conn =get_db_connection()
-    vendedores = conn.execute("SELECT * FROM vendedores ORDER BY id DESC").fetchall()
-    conn.close()
 
-    return render_template('vendedores.html',vendedores=vendedores)
 
 @app.route('/agregar_vendedor',methods=["POST"])
 def agregar_vendedor():
@@ -778,14 +772,14 @@ def agregar_vendedor():
         return redirect(url_for('login'))\
     
     if request.method =="POST": 
-        nombre = request.form('nombre')
-        telefono = request.form('telefono')
-        activo = request.form('activo')
+        nombre = request.form.get('nombre')
+        telefono = request.form.get('telefono')
+        activo = request.form.get('activo')
         conn = get_db_connection()
         conn.execute("INSERT INTO vendedores (nombre,telefono,activo) VALUES (?,?,?)",(nombre,telefono,activo))
         conn.commit()
         conn.close()
-    return render_template('vendedores.html')
+    return render_template('clientes.html')
 
 @app.route("/vendedores/<int:item_id>/eliminar", methods=["POST"])
 def eliminar_vendedor(item_id):
@@ -795,7 +789,7 @@ def eliminar_vendedor(item_id):
     conn.execute("DELETE FROM vendedores WHERE id =?",(item_id,))
     conn.commit()
     conn.close()
-    return redirect(url_for("vendedores"))
+    return redirect(url_for("clientes"))
      
 # =====================================================
 # LOGOUT

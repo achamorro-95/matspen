@@ -2,36 +2,37 @@
 {% block title %}Clientes{% endblock %}
 {% block content %}
 
-<h1>Clientes</h1>
+<h2 id="tituloSeccion">Clientes</h2>
 
-<button onclick="abrirModal()" class="agregarnuevo">+ Nuevo Cliente</button>
-
-<!-- MODAL -->
-<div id="modalNuevo" class="modal">
-  <div class="modal-content">
-    <span class="close" onclick="cerrarModal()">&times;</span>
-
-    <h2>Nuevo Cliente</h2>
+<div class="seleccion-group">
+  <button type="button" id="btnClientes" class="active" >Clientes</button>
+  <button type="button" id="btnVendedores" >Vendedores</button>
+</div>
+<div class="separacion"></div>
+<!-- CONTENIDO CLIENTES -->
+<div id="seccionClientes">
+  <div class = "container">
     <form method="post" action="{{ url_for('agregar_clientes') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-      <label>Nombre</label>
-      <input type="text" name="nombre" required>
+            <label>Nombre</label>
+            <input type="text" name="nombre" required>
 
-      <label>Contacto</label>
-      <input type="text" name="contacto" required>
+            <label>Telefono</label>
+            <input type="text" name="telefono" required>
+            <label>Contacto</label>
+            <input type="text" name="contacto" required>
+            <label>Activo</label>
+            <input type="text" name="activo" required>
 
-      <label>Teléfono</label>
-      <input type="text" name="telefono" required>
-
-      <br><br>
-      <button class ="guardar" type="submit">Guardar</button>
+            <br><br>
+            <button class="guardar" type="submit">Guardar</button>
+      
+    
     </form>
   </div>
-</div>
-
-<!-- TABLA -->
-<table border="1" cellpadding="10" cellspacing="0" width="100%">
+  <div class="separacion"></div>
+  <table border="1" cellpadding="10" cellspacing="0" width="100%">
   <thead>
     <tr>
       <th>Nombre</th>
@@ -63,10 +64,108 @@
     {% endfor %}
   </tbody>
 </table>
+</div>
+  
+
+<!-- CONTENIDO VENDEDORES -->
+<div id="seccionVendedores" style="display:none;">
+      <form method="post" action="{{ url_for('agregar_vendedor') }}">
+             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <label>Nombre</label>
+            <input type="text" name="nombre" required>
+
+            <label>Telefono</label>
+            <input type="text" name="telefono" required>
+
+            <label>Activo</label>
+            <input type="text" name="activo" required>
+
+            <br><br>
+            <button class="guardar" type="submit">Guardar</button>
+        </form>
+        
+
+<table broder="1" cellpadding="10" cellpadding="0" width = "100%">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Telefono</th>
+            <th>Activo</th>
+            <th>Accion</th>
+
+        </tr>
+    </thead> 
+    <tbody>
+        {% for v in vendedores %}
+        <tr>
+            <td>{{ v.nombre }}</td>
+            <td> {{ v.telefono }}</td>
+            <td> {{ v.activo }}</td>
+            <td>
+                <form method="POST" action="/vendedores/{{ v['id'] }}/eliminar"
+                onsubmit="return confirm('Seguro quieres eliminar?');">
+                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
+                        style="padding:6px 10px; border:none; border-radius:6px;
+                                background:#c62828; color:white; cursor:pointer;">
+                    Eliminar
+                </button>
+            </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+</table>
+
+</div>
+
+<!-- TABLA -->
+
 
 <style>
+  .seleccion-group button{
+
+  
+    background: #c62828;
+    color: #fff;
+    border-radius: 5px;
+    border: none;
+    padding: 10px;
+  }
+  .separacion{
+    margin:20px 10px;
+   
+  }
+  .container{
+    background:none;
+    border-radius: 10px;
+    display: flex;
+    padding: 10px;
+    
+    
+  }
+  .container form{
+    display: flex;
+    align-items: center;
+    color:black;
+
+  
+
+    
+  }
+  .container form input{
+   border: none;              /* quitar todos los bordes */
+    border-bottom: 2px solid #ccc;  /* solo línea abajo */
+    outline: none;             /* quitar borde azul al hacer click */
+    padding: 8px 4px;
+    background: transparent;
+    width: 100px;
+    ;
+  }
     .guardar{
-        background: #c62828;
+        background:#c62828;
         color:#fff;
         border-radius: 10px;
         padding:10px;
@@ -123,17 +222,31 @@
     }
 </style>
 <script>
-function abrirModal(){
-  document.getElementById('modalNuevo').style.display = "flex";
-}
-function cerrarModal(){
-  document.getElementById('modalNuevo').style.display = "none";
-}
-window.onclick = function(event){
-  const modal = document.getElementById("modalNuevo");
-  if(event.target === modal){
-    modal.style.display = "none";
-  }
-}
+
+const btnClientes = document.getElementById("btnClientes");
+const btnVendedores = document.getElementById("btnVendedores");
+
+const seccionClientes = document.getElementById("seccionClientes");
+const seccionVendedores = document.getElementById("seccionVendedores");
+
+const titulo = document.getElementById("tituloSeccion");
+
+btnClientes.addEventListener("click", () => {
+    seccionClientes.style.display = "block";
+    seccionVendedores.style.display = "none";
+    titulo.textContent = "Clientes";
+
+    btnClientes.classList.add("active");
+    btnVendedores.classList.remove("active");
+});
+
+btnVendedores.addEventListener("click", () => {
+    seccionClientes.style.display = "none";
+    seccionVendedores.style.display = "block";
+    titulo.textContent = "Vendedores";
+
+    btnVendedores.classList.add("active");
+    btnClientes.classList.remove("active");
+});
 </script>
 {% endblock %}

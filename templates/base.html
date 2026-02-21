@@ -251,7 +251,7 @@
             <ul>
                 <li><a href="{{ url_for('costos') }}">💰 Costos</a></li>
                 <li><a href="{{ url_for('nuevo_costo') }}">📐 Costeo</a></li>
-                
+                <li><a href="{{ url_for('clientes')}}">Catalogos</a></li>
                 <li class="nav-group">
                     <button class="nav-parent" type="button"
                             onclick="toggleMenu('coti_venta', 'dash_venta')">
@@ -272,16 +272,9 @@
                         <a class = "nav-child" href="{{ url_for('produccion')}}">Proucciones Ventas</a>
                         <a class="nav-child" href="{{ url_for('ventas_monitoreo') }}">👀 Monitoreo</a>
                         <a class = "nav-child" href="{{ url_for('dashventas') }}">Dashboard Ventas</a>
-
+                        
                     </div>
-                    <button class="nav-parent" type="button" onclick="toggleMenu2('mostrar_menu','esconder_menu')">
-                        <span>Catalogos</span>
-                        <span class="cat" id="esconder_menu">▾</span>
-                    </button>
-                    <div class = "nav-children" id="mostrar_menu"> 
-                        <a class="nav-child" href="{{ url_for('clientes')}}">Clientes</a>
-                        <a class ="nav-child" href="{{ url_for('vendedores')}}">Vendedores</a>
-                    </div>
+                  
                 </li>
                 <li><a href="{{ url_for('logout') }}">🚪 Cerrar sesión</a></li>
             </ul>
@@ -308,15 +301,7 @@
             chev.style.transform = open ? "rotate(0deg)" : "rotate(180deg)";
 
         }
-        function toggleMenu2(MostrarMenu,EsconderMenu){
-            const mostrar = document.getElementById(MostrarMenu);
-            const esconder = document.getElementById(EsconderMenu);
-
-            const open = mostrar.style.display ==="block";
-            mostrar.style.display = open ? "none" : "block"; 
-            esconder.style.transform = open ? "rotate(0deg)" : "rotate(180deg)";
-            
-        }
+        
     </script>
     </body>
 
