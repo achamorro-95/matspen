@@ -295,12 +295,13 @@ def ventas_nuevas():
         return redirect(url_for("login"))
     if request.method == "POST": 
         conn = get_db_connection()
-        conn.execute(""" INSERT INTO ventas(fecha,vendedor,cliente,cotizacion,mont) VALUES(?,?,?,?,?)""",(
+        conn.execute(""" INSERT INTO ventas(fecha,vendedor,cliente,cotizacion,mont,proyecto) VALUES(?,?,?,?,?,?)""",(
             request.form["fecha"],
             request.form["vendedor"],
             request.form["clientes"],
             request.form["cotizacion"],
-            request.form["mont"]
+            request.form["mont"],
+            request.form["proyecto"]
         ))
         conn.commit()
         conn.close()
@@ -447,7 +448,7 @@ def nuevo_costo():
         costo_total_material = cantidad_resmas * costo_resmas
 
         costo_barniz = (((190 / 11000) / alcanzan_medio_pliego) * imp_total) if barniz else 0
-        if ambascaras == "si":
+        if ambascaras:
 
             costo_tinta  = (((70 / 11000) / alcanzan_medio_pliego) * imp_total)*2
         else : 
@@ -839,4 +840,4 @@ def handle_exception(e):
     return "Error interno (mira logs).", 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=False)

@@ -37,8 +37,6 @@
         <input type="text" name="cotizacion" required>
       </div>
 
-      
-
       <div class="field">
         <label>Monto</label>
         <input type="number" name="mont" required>
@@ -48,9 +46,12 @@
         <select name="tipo" required>
         <option value="">Tipo</option>  
         {% for t in tipo %}
-        <option value="{{ t.nombre }}">{{ t.nombre }}</option>       
+        <option value="{{ t.nombre }}">{{ t.nombre }}</option>        
         {% endfor %}
         </select>
+        <label>Proyecto</label>
+        <input type="text" name="proyecto" required>
+  
     </div>
 
       <!-- botón alineado -->
@@ -78,6 +79,7 @@
             <th>Cotizacion</th>
             <th>Tipo</th>
             <th>Monto</th>
+            <th>Proyecto</th>
             <th>Accion</th>
         </tr>   
     </thead>
@@ -90,6 +92,7 @@
             <td>#{{ v.cotizacion }}</td>
             <td>{{ v.tipo }}</td>
             <td>${{ v.mont }}</td>
+            <td>{{ v.proyecto }}</td>
             <td>
                <form method="post" action="{{ url_for('eliminar_venta', ventas_id=v.id) }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -164,7 +167,7 @@
   .actions{
     grid-column: 3 / 4;   /* botón en la derecha */
     display: flex;
-    align-items: end;
+    align-items:end;
     justify-content: flex-end;
   }
 
