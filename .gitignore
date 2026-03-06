@@ -16,3 +16,5 @@ env/
 
 # Variables de entorno
 .env
+
+.database.db 
