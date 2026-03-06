@@ -180,7 +180,7 @@ def ventas_monitoreo():
     """).fetchall()
    
     conn.close()
-    return render_template("monitoreo.html", ventas=rows)
+    return render_template("monitoreo.html",
 @app.route("/ventas/<int:venta_id>/produccion")
 def ventas_produccion(venta_id):
     if "user_id" not in session: 
