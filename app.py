@@ -61,14 +61,18 @@ def dashventas():
     if "user_id" not in session : 
          return redirect(url_for("login"))
     conn= get_db_connection()
-    vendedores = conn.execute("""
-        SELECT DISTINCT nombre AS vendedor
-        FROM vendedores
-        WHERE nombre IS NOT NULL AND TRIM(nombre) <> ''
-        ORDER BY nombre
-    """).fetchall()
+    try:
+        vendedores = conn.execute("""
+            SELECT DISTINCT nombre AS vendedor
+            FROM vendedores
+            WHERE nombre IS NOT NULL AND TRIM(nombre) <> ''
+            ORDER BY nombre
+        """).fetchall()
+        ventas = conn.execute(""" SELECT fecha AS fecha, vendedor AS vendedor, cliente AS cliente,mont AS monto,tipo AS tipo FROM ventas ORDER BY id DESC""").fetchall()
+    finally:   
+        conn.close()    
 
-    ventas = conn.execute(""" SELECT fecha AS fecha, vendedor AS vendedor, cliente AS cliente,mont AS monto,tipo AS tipo FROM ventas ORDER BY id DESC""").fetchall()
+       
     return render_template("dashboard_ventas.html",vendedores=vendedores,ventas=ventas)
 
 @app.route("/dashboard")
@@ -132,13 +136,16 @@ def produccion():
     q = request.args.get("q", "").strip()
 
     if q:
+       
         ventas = conn.execute("""
             SELECT * FROM ventas
             WHERE cliente LIKE ?
                OR vendedor LIKE ?
                OR cotizacion LIKE ?
+                OR tipo LIKE ?
+                
             ORDER BY id DESC
-        """, (f"%{q}%", f"%{q}%", f"%{q}%")).fetchall()
+        """, (f"%{q}%", f"%{q}%", f"%{q}%", f"%{q}%")).fetchall()
     else:
         ventas = conn.execute(
             "SELECT * FROM ventas ORDER BY id DESC"
@@ -148,7 +155,7 @@ def produccion():
     conn.close()
 
 
-    return render_template("producciones.html",ventas=ventas,vendedores=vendedores,clientes=clientes,tipo=tipo)
+    return render_template("producciones.html",ventas=ventas,vendedores=vendedores,clientes=clientes,tipo=tipo,q=q,venta =None)
 
 @app.route("/ventas/monitoreo")
 def ventas_monitoreo():
@@ -171,7 +178,7 @@ def ventas_monitoreo():
         FROM ventas v
         ORDER BY v.id DESC
     """).fetchall()
-
+   
     conn.close()
     return render_template("monitoreo.html", ventas=rows)
 @app.route("/ventas/<int:venta_id>/produccion")
@@ -289,27 +296,52 @@ def eliminar_linea_produccion(venta_id, linea_id):
     return redirect(url_for("ventas_produccion", venta_id=venta_id))
 
 
-@app.route("/ventasnuevas", methods = ["GET","POST"])
-def ventas_nuevas(): 
-    if "user_id" not in session: 
+@app.route("/ventasnuevas", methods=["GET", "POST"])
+def ventas_nuevas():
+    if "user_id" not in session:
         return redirect(url_for("login"))
-    if request.method == "POST": 
-        conn = get_db_connection()
-        conn.execute(""" INSERT INTO ventas(fecha,vendedor,cliente,cotizacion,mont,proyecto) VALUES(?,?,?,?,?,?)""",(
-            request.form["fecha"],
-            request.form["vendedor"],
-            request.form["clientes"],
-            request.form["cotizacion"],
-            request.form["mont"],
-            request.form["proyecto"]
-        ))
-        conn.commit()
-        conn.close()
+
+    conn = get_db_connection()
+    try:
+        if request.method == "POST":
+            fecha = request.form.get("fecha")
+            vendedor = request.form.get("vendedor")
+            cliente = request.form.get("clientes")
+            cotizacion = request.form.get("cotizacion")
+            mont = request.form.get("mont")
+            proyecto = request.form.get("proyecto")
+            cantidades = request.form.get("cantidades")
+            tipo = request.form.get("tipo")
+
+            conn.execute("""
+                INSERT INTO ventas (fecha, vendedor, cliente, cotizacion, mont, proyecto, cantidades, tipo)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (fecha, vendedor, cliente, cotizacion, mont, proyecto, cantidades, tipo))
+
+            conn.commit()
+            flash("Venta guardada correctamente", "success")
+            return redirect(url_for("produccion"))
+
+        vendedores = conn.execute("SELECT id, nombre FROM vendedores").fetchall()
+        clientes = conn.execute("SELECT id, nombre FROM clientes").fetchall()
+        tipo = conn.execute("SELECT id, nombre FROM tipos_impresion").fetchall()
+
+        return render_template(
+            "ventas_nuevas.html",
+            vendedores=vendedores,
+            clientes=clientes,
+            tipo=tipo
+        )
+
+    except Exception as e:
+        conn.rollback()
+        print("❌ ERROR EN ventas_nuevas:", repr(e))
+        flash(f"Error guardando venta: {e}", "danger")
         return redirect(url_for("produccion"))
 
-    vendedores= conn.execute("SELECT id, nombre FROM vendedores").fetchall()
-    clientes = conn.execute("SELECT id,nombre FROM clientes").fetchall()
-    return render_template("ventas_nuevas.html",vendedores=vendedores,clientes=clientes)
+    finally:
+        conn.close()
+
 @app.route("/producciones/<int:ventas_id>/eliminar", methods= ["POST"])
 def eliminar_venta(ventas_id):
     if "user_id" not in session: 
@@ -328,8 +360,62 @@ def eliminar_venta(ventas_id):
         conn.close()
 
     return redirect(url_for("produccion"))
-# =====================================================
-# COSTOS
+@app.route("/producciones/<int:ventas_id>/editar", methods=["POST", "GET"])
+def editar_venta(ventas_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+    try:
+        venta = conn.execute("SELECT * FROM ventas WHERE id = ?", (ventas_id,)).fetchone()
+
+        if not venta:
+            flash("Venta no encontrada", "danger")
+            return redirect(url_for("produccion"))
+
+        if request.method == "POST":
+            fecha = request.form.get("fecha")
+            vendedor = request.form.get("vendedor")
+            cliente = request.form.get("clientes")
+            cotizacion = request.form.get("cotizacion")
+            mont = request.form.get("mont")
+            proyecto = request.form.get("proyecto")
+            cantidades = request.form.get("cantidades")
+            tipo = request.form.get("tipo")
+
+            conn.execute("""
+                UPDATE ventas
+                SET fecha=?, vendedor=?, cliente=?, cotizacion=?, mont=?, proyecto=?, cantidades=?, tipo=?
+                WHERE id=?
+            """, (fecha, vendedor, cliente, cotizacion, mont, proyecto, cantidades, tipo, ventas_id))
+
+            conn.commit()
+            flash("Venta actualizada correctamente", "success")
+            return redirect(url_for("produccion"))
+
+        ventas = conn.execute("SELECT * FROM ventas").fetchall()
+        vendedores = conn.execute("SELECT * FROM vendedores").fetchall()
+        clientes = conn.execute("SELECT * FROM clientes").fetchall()
+        tipo = conn.execute("SELECT * FROM tipos_impresion").fetchall()
+
+        return render_template(
+            "producciones.html",
+            venta=venta,
+            vendedores=vendedores,
+            clientes=clientes,
+            ventas=ventas,
+            tipo=tipo,
+            q=""
+        )
+
+    except Exception as e:
+        conn.rollback()
+        print("❌ ERROR EDITANDO:", repr(e))
+        flash(f"Error editando venta: {e}", "danger")
+        return redirect(url_for("produccion"))
+
+    finally:
+        conn.close()
 # =====================================================
 @app.route("/costos")
 def costos(): 
@@ -346,7 +432,15 @@ def eliminar(item_id):
         return redirect(url_for("login"))
     
     conn = get_db_connection()
-    conn.execute("DELETE FROM costos WHERE id =?",(item_id,))
+    try:
+        conn.execute("DELETE FROM costos WHERE id =?",(item_id,))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        print("❌ ERROR ELIMINANDO COSTO:", repr(e))  # DEBUG
+        flash(f"❌ Error eliminando costo: {e}", "danger")
+    finally:
+        conn.close()
     conn.commit()
     conn.close()
     return redirect(url_for("costos"))
@@ -357,18 +451,27 @@ def eliminar(item_id):
 def agregar_costo():
     if "user_id" not in session:
         return redirect(url_for("login"))
+    
     if request.method == "POST":
-        material = request.form["material"]
-        proveedores = request.form["proveedor"]
-        factura = request.form["factura"]
-        monto = request.form["monto"]
-        fecha = request.form["fecha"]
         conn = get_db_connection()
-        conn.execute("INSERT INTO costos (material, proveedor, factura, monto, fecha) VALUES (?, ?, ?, ?, ?)",
-                     (material, proveedores, factura, monto, fecha))
-        conn.commit()
-        conn.close()
-        return redirect(url_for("costos"))
+        try:
+            material = request.form["material"]
+            proveedores = request.form["proveedor"]
+            factura = request.form["factura"]
+            monto = request.form["monto"]
+            fecha = request.form["fecha"]
+            
+            conn.execute("INSERT INTO costos (material, proveedor, factura, monto, fecha) VALUES (?, ?, ?, ?, ?)",
+                        (material, proveedores, factura, monto, fecha))
+            conn.commit()
+            flash("Costo agregado correctamente", "success")
+            return redirect(url_for("costos"))
+        except Exception as e:
+            conn.rollback()
+            print("❌ ERROR AGREGANDO COSTO:", repr(e))  # DEBUG
+            flash(f"❌ Error agregando costo: {e}", "danger")
+        finally:
+            conn.close()
     return render_template("nuevo_costo.html")
 
 
@@ -744,17 +847,24 @@ def clientes():
 def agregar_clientes():
     if "user_id" not in session:
         return redirect(url_for("login"))
-    if request.method == "POST":
+    conn = get_db_connection()
+
+    try:
         nombre = request.form["nombre"]
         contacto = request.form["contacto"]
         telefono = request.form["telefono"]
         activo = request.form["activo"]
-
-        conn = get_db_connection()
         conn.execute("INSERT INTO clientes (nombre,contacto, telefono,activo) VALUES (?, ?, ?,?)",
                      (nombre,contacto,telefono,activo))
         conn.commit()
+        flash("Cliente agregado correctamente", "success")
+    except Exception as e:
+        conn.rollback()
+        print("❌ ERROR AGREGANDO CLIENTE:", repr(e))  # DEBUG
+        flash(f"❌ Error agregando cliente: {e}", "danger")
+    finally:
         conn.close()
+
     return redirect(url_for("clientes"))
     
 
@@ -770,20 +880,33 @@ def eliminar_cliente(item_id):
     return redirect(url_for("clientes"))
 
 
-@app.route('/agregar_vendedor',methods=["POST"])
+@app.route('/agregar_vendedor', methods=["POST"])
 def agregar_vendedor():
     if "user_id" not in session:
-        return redirect(url_for('login'))\
-    
-    if request.method =="POST": 
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    try:
         nombre = request.form.get('nombre')
         telefono = request.form.get('telefono')
         activo = request.form.get('activo')
-        conn = get_db_connection()
-        conn.execute("INSERT INTO vendedores (nombre,telefono,activo) VALUES (?,?,?)",(nombre,telefono,activo))
+
+        conn.execute(
+            "INSERT INTO vendedores (nombre, telefono, activo) VALUES (?, ?, ?)",
+            (nombre, telefono, activo)
+        )
         conn.commit()
+        flash("Vendedor agregado correctamente", "success")
+
+    except Exception as e:
+        conn.rollback()
+        print("❌ ERROR AGREGANDO VENDEDOR:", repr(e))
+        flash(f"❌ Error agregando vendedor: {e}", "danger")
+
+    finally:
         conn.close()
-    return render_template('clientes.html')
+
+    return redirect(url_for("clientes"))
 
 @app.route("/vendedores/<int:item_id>/eliminar", methods=["POST"])
 def eliminar_vendedor(item_id):
@@ -803,12 +926,13 @@ def eliminar_material(item_id):
     conn.commit()
     conn.close()
     return redirect(url_for("clientes"))
-@app.route("/agregar_material", methods=["post"])
+@app.route("/agregar_material", methods=["POST"])
 def agregar_material():
     if "user_id" not in session:
         return redirect(url_for("login"))
-   
-    if request.method =="POST":
+
+    conn = get_db_connection()
+    try:
         nombre = request.form.get('material')
         gramaje = request.form.get('gramaje')
         pliegos = request.form.get("pliegos_resma")
@@ -816,10 +940,24 @@ def agregar_material():
         ancho = request.form.get('ancho')
         alto = request.form.get('alto')
         tipos = request.form.get('tipo')
-        conn = get_db_connection()
-        conn.execute("INSERT INTO materiales(nombre,gramaje,pliegos_por_resma,costo_resma,ancho_pl,altos_pl,tipo_impresion_id) VALUES (?,?,?,?,?,?,?)",(nombre,gramaje,pliegos,costo,ancho,alto,tipos))
+
+        conn.execute("""
+            INSERT INTO materiales
+            (nombre, gramaje, pliegos_por_resma, costo_resma, ancho_pl, altos_pl, tipo_impresion_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (nombre, gramaje, pliegos, costo, ancho, alto, tipos))
+
         conn.commit()
+        flash("Material agregado correctamente", "success")
+
+    except Exception as e:
+        conn.rollback()
+        print("❌ ERROR AGREGANDO MATERIAL:", repr(e))
+        flash(f"Error agregando material: {e}", "danger")
+
+    finally:
         conn.close()
+
     return redirect(url_for("clientes"))
 # =====================================================
 # LOGOUT
@@ -839,5 +977,5 @@ def handle_exception(e):
     traceback.print_exc()
     return "Error interno (mira logs).", 500
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=False)
+if __name__ == '__main__':
+    app.run(debug=True, use_reloader=False)

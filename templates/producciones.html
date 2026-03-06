@@ -3,7 +3,7 @@
 {% block content %}
 
 <h1 class="ventas-header">Ventas</h1>
-<form method="POST" action="{{ url_for('ventas_nuevas') }}" class="form-card">
+<form method="POST" action="{% if venta %}{{ url_for('editar_venta', ventas_id=venta.id) }}{% else %}{{ url_for('ventas_nuevas') }}{% endif %}" class="form-card">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
   <div class="cards">
@@ -11,66 +11,83 @@
 
       <div class="field">
         <label>Fecha</label>
-        <input type="date" name="fecha" required>
+        <input type="date" name="fecha" value="{{ venta.fecha if venta else '' }}" required>
       </div>
 
       <div class="field">
         <label>Vendedor</label>
         <select name="vendedor" required>
-            <option value="">Seleccionar Vendedor</option>
-            {% for v in vendedores %}
-                <option value="{{ v.nombre }}">{{ v.nombre }}</option>
-            {% endfor %}
+          <option value="">Seleccionar Vendedor</option>
+          {% for v in vendedores %}
+            <option value="{{ v.nombre }}" {% if venta and venta.vendedor == v.nombre %}selected{% endif %}>
+              {{ v.nombre }}
+            </option>
+          {% endfor %}
         </select>
       </div>
-      <div class = "field">
+
+      <div class="field">
         <label>Cliente</label>
-        <select name="clientes" required> 
-            <option value="">Seleccionar Cliente</option>
-            {% for c in clientes %}
-            <option value="{{ c.nombre }}">{{ c.nombre }}</option>
-            {% endfor %}
+        <select name="clientes" required>
+          <option value="">Seleccionar Cliente</option>
+          {% for c in clientes %}
+            <option value="{{ c.nombre }}" {% if venta and venta.cliente == c.nombre %}selected{% endif %}>
+              {{ c.nombre }}
+            </option>
+          {% endfor %}
         </select>
       </div>
+
       <div class="field">
         <label>Cotización</label>
-        <input type="text" name="cotizacion" required>
+        <input type="text" name="cotizacion" value="{{ venta.cotizacion if venta else '' }}" required>
       </div>
 
       <div class="field">
         <label>Monto</label>
-        <input type="number" name="mont" required>
+        <input type="number" name="mont" value="{{ venta.mont if venta else '' }}" required>
       </div>
-      <div class = "field">
+
+      <div class="field">
         <label>Tipo</label>
         <select name="tipo" required>
-        <option value="">Tipo</option>  
-        {% for t in tipo %}
-        <option value="{{ t.nombre }}">{{ t.nombre }}</option>        
-        {% endfor %}
+          <option value="">Tipo</option>
+          {% for t in tipo %}
+            <option value="{{ t.nombre }}" {% if venta and venta.tipo == t.nombre %}selected{% endif %}>
+              {{ t.nombre }}
+            </option>
+          {% endfor %}
         </select>
-        <label>Proyecto</label>
-        <input type="text" name="proyecto" required>
-  
-    </div>
+      </div>
 
-      <!-- botón alineado -->
+      <div class="field">
+        <label>Proyecto</label>
+        <input type="text" name="proyecto" value="{{ venta.proyecto if venta else '' }}" required>
+      </div>
+
+      <div class="field">
+        <label>Cantidades</label>
+        <input type="number" name="cantidades" value="{{ venta.cantidades if venta else '' }}" required>
+      </div>
+
       <div class="actions">
-        <button type="submit">Guardar Venta</button>
+        <button type="submit">
+          {% if venta %}Editar Venta{% else %}Guardar Venta{% endif %}
+        </button>
       </div>
 
     </div>
-  </div>
+  
 </form>
 
 <form method="get">
-    <div class = "search">
     <input type ="text" name ="q" placeholder="Buscar,cliente,vendedor..." value ="{{ q }}" style="padding:8px;border: 1px solid #ccc;border-radius: 6px;">
     <button type="submit" style="padding: 10px 12px;border: none; border-radius: 8px; background-color: #b11226;color:white;">Filtrar</button>
     <a href="{{ url_for('produccion') }}" style="padding:10px 12px; border:none; border-radius: 6px;background-color:white;color:black;">Borrar</a>
-    </div>
+      
 </form>
-<table border="2" cellpadding="10" cellpadding="0" width = "100%">
+</div>
+<table class ="tables" border="2" cellpadding="10" cellpadding="0" width = "100%">
     <thead class = "table-head">
         <tr>
             <th>Fecha</th>
@@ -79,6 +96,7 @@
             <th>Cotizacion</th>
             <th>Tipo</th>
             <th>Monto</th>
+            <th>Cantidades</th>
             <th>Proyecto</th>
             <th>Accion</th>
         </tr>   
@@ -92,12 +110,17 @@
             <td>#{{ v.cotizacion }}</td>
             <td>{{ v.tipo }}</td>
             <td>${{ v.mont }}</td>
+            <td>{{ v.cantidades }}</td>
             <td>{{ v.proyecto }}</td>
             <td>
                <form method="post" action="{{ url_for('eliminar_venta', ventas_id=v.id) }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class ="eliminarbtn" type="submit">Eliminar</button>
-            </form>
+              </form>
+              <div style="height: 6px;"></div> <!-- espacio entre botones -->
+              <a  class ="editarbtn" href="{{ url_for('editar_venta', ventas_id=v.id) }}">Editar</a>
+            
+ 
 
             </td>
         </tr>
@@ -109,6 +132,31 @@
 
 
 <style>
+  .tables{
+    margin-top: 25px;
+      background: white;
+      border-collapse: collapse;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+     
+  }
+  
+  .editarbtn{
+    border-radius: 30px;
+    background-color: green;
+    color: white;
+    border-style: none;
+    cursor: pointer;
+    padding: 4px 17px;
+    text-decoration: none;
+    display: inline-block;
+
+   
+  }
   .eliminarbtn{
     border-radius: 30px;
     background-color: #b11226;
@@ -120,7 +168,12 @@
         background: white;
         border-radius: 10px;
         padding: 10px;
-        max-width: fit-content;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        width: 500px;
+        margin: 10px auto;
+
+       
+
     }
     .table-head{
         color:#b11226;
@@ -132,7 +185,11 @@
 
     }
   .form-card{
-    max-width: 720px;
+    width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+        margin-top: 20px;
+     
   }
 
   .cards{
@@ -141,14 +198,15 @@
     border-radius: 12px;
     padding: 14px;
     box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    
   }
 
   .grid{
     display: grid;
-    grid-template-columns: repeat(3, minmax(180px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+    gap: 10px;
     align-items: start;
-  }
+    }
 
   .field label{
     display:block;
@@ -156,7 +214,7 @@
     margin-bottom: 6px;
   }
 
-  .field input, .field select{
+  .field input, .field select {
     width: 100%;
     padding: 10px;
     border-radius: 10px;
@@ -165,7 +223,7 @@
   }
 
   .actions{
-    grid-column: 3 / 4;   /* botón en la derecha */
+    grid-column: 4 / 5;   /* botón en la derecha */
     display: flex;
     align-items:end;
     justify-content: flex-end;
@@ -180,6 +238,7 @@
     border-radius: 10px;
     cursor: pointer;
   }
+  
 
   /* responsive: en pantallas pequeñas baja a 2 y luego 1 columna */
   @media (max-width: 900px){

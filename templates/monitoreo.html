@@ -16,6 +16,7 @@
             <th>Cliente</th>
             <th>Vendedor</th>
             <th>Fecha de entrega</th>
+            <th>Tiempo</th>
             <th>Estado general</th>
             <th>Progreso</th>
             <th>Acción</th>
@@ -30,7 +31,9 @@
                 <td>{{ v.cliente }}</td>
                 <td>{{ v.vendedor }}</td>
 
-                <td>{{ v.fecha if v.fecha else '_' }}</td>
+                <td>{{ v.fecha if v.fecha else '_' }}
+                   <small class="tiempo-restante" data-restante="{{ v.fecha_diff }}" style="display:block"></small>
+                </td>
                 <td>
                     {% if v.estado_general == 'finalizada' %}
                         <span class="badge badge-ok">Finalizada</span>
@@ -87,6 +90,35 @@
 .badge-muted{background:#e5e7eb;color:#111}
 
 </style>
+<script>
+    document.querySelectorAll('.tiempo-restante').forEach(el => {
 
+    function actualizar(){
+
+        let restante = parseInt(el.getAttribute('data-restante'));
+
+        if (!isNaN(restante)) {
+
+            let dias = Math.floor(restante / (1000 * 60 * 60 * 24)) + 1;
+
+            if(dias > 0){
+                el.textContent = `Tiempo restante: ${dias} días`;
+                el.style.color = "green";
+            }else{
+                el.textContent = "⚠ Atrasado";
+                el.style.color = "red";
+            }
+
+            restante -= 60000; // resta 1 minuto
+            el.setAttribute("data-restante", restante)
+        }
+    }
+
+    actualizar()
+
+    setInterval(actualizar,60000) // cada minuto
+
+});
+</script>
 {% endblock %}
 </html>
