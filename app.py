@@ -182,9 +182,16 @@ def ventas_monitoreo():
           (SELECT COUNT(*) FROM produccion_lineas pl
             WHERE pl.venta_id = v.id) AS total_lineas
         FROM ventas v
-        ORDER BY v.id DESC
+        ORDER BY 
+        CASE
+            WHEN v.estado = 'finalizada' THEN 4
+            WHEN v.fecha < DATE('now') THEN 1
+            WHEN v.fecha >= DATE('now') THEN 2
+            ELSE 3
+        END,
+        v.fecha ASC
     """).fetchall()
-
+        
     ventas = []
 
     for r in rows:

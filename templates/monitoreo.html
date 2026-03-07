@@ -30,8 +30,13 @@
                 <td>{{ v.cliente }}</td>
                 <td>{{ v.vendedor }}</td>
 
-                <td>{{ v.fecha if v.fecha else '_' }}
-                   <small class="tiempo-restante" data-restante="{{ v.fecha_diff }}" style="display:block">{{ v.fecha_diff }}</small>
+                <td>
+                    {{ v.fecha if v.fecha else '_' }}
+                        <small class="tiempo-restante"
+                        data-restante="{{ v.fecha_diff }}"
+                        data-estado="{{ v.estado_general }}"
+                        style="display:block">
+                    </small>
                 </td>
                 <td>
                     {% if v.estado_general == 'finalizada' %}
@@ -94,6 +99,13 @@ document.querySelectorAll('.tiempo-restante').forEach(el => {
 
     function actualizar() {
         let restante = parseInt(el.getAttribute('data-restante'));
+        let estado = el.getAttribute('data-estado');
+        if(estado === 'finalizada' || estado === 'entregado'){
+            el.textContent = "Entregado";
+            el.style.color = "green";
+            return;
+
+        }
 
         if (!isNaN(restante)) {
             let dias = Math.floor(restante / (1000 * 60 * 60 * 24)) + 1;
@@ -112,6 +124,7 @@ document.querySelectorAll('.tiempo-restante').forEach(el => {
             el.textContent = "Fecha no válida";
             el.style.color = "#666";
         }
+
     }
 
     actualizar();
