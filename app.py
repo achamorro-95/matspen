@@ -157,6 +157,12 @@ def produccion():
 
     return render_template("producciones.html",ventas=ventas,vendedores=vendedores,clientes=clientes,tipo=tipo,q=q,venta =None)
 
+from datetime import datetime
+
+from datetime import datetime
+
+from datetime import datetime
+
 @app.route("/ventas/monitoreo")
 def ventas_monitoreo():
     if "user_id" not in session:
@@ -178,9 +184,28 @@ def ventas_monitoreo():
         FROM ventas v
         ORDER BY v.id DESC
     """).fetchall()
-   
+
+    ventas = []
+
+    for r in rows:
+        venta = dict(r)
+
+        if venta["fecha"]:
+            try:
+                fecha_entrega = datetime.strptime(venta["fecha"], "%Y-%m-%d")
+                ahora = datetime.now()
+                diff = fecha_entrega - ahora
+                venta["fecha_diff"] = int(diff.total_seconds() * 1000)
+            except:
+                venta["fecha_diff"] = None
+        else:
+            venta["fecha_diff"] = None
+
+        ventas.append(venta)
+
     conn.close()
-    return render_template("monitoreo.html",
+
+    return render_template("monitoreo.html", ventas=ventas)
 @app.route("/ventas/<int:venta_id>/produccion")
 def ventas_produccion(venta_id):
     if "user_id" not in session: 
