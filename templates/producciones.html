@@ -3,11 +3,14 @@
 {% block content %}
 
 <h1 class="ventas-header">Ventas</h1>
+<div class ="nuevoBtn" id = "nuevoBtn">
+    <button type="button" class = "nuevaVenta" id = "nuevo">Agregar Venta</button>
+  </div>
 <form method="POST" action="{% if venta %}{{ url_for('editar_venta', ventas_id=venta.id) }}{% else %}{{ url_for('ventas_nuevas') }}{% endif %}" class="form-card">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
+  
   <div class="cards">
-    <div class="grid">
+    <div class="grid" id="formventa" style="display: none;">
 
       <div class="field">
         <label>Fecha</label>
@@ -200,6 +203,15 @@
     box-shadow: 0 4px 16px rgba(0,0,0,0.06);
     
   }
+  .nuevaVenta{
+    color:white;
+    background: #b11226;
+    border-radius: 8px;
+    border: none;
+    padding: 10px 14px;
+    cursor: pointer;
+
+  }
 
   .grid{
     display: grid;
@@ -251,5 +263,15 @@
     .actions button{ width: 100%; }
   }
 </style>
+<script>
+  document.getElementById("nuevo").addEventListener("click", function(){
+    const form = document.getElementById("formventa");
+    if(form.style.display === "none"){
+      form.style.display = "grid";
+    } else {
+      form.style.display = "none";
+    }
+  });
+</script>
 {% endblock %}
 </html

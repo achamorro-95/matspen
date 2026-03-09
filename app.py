@@ -30,6 +30,40 @@ csrf = CSRFProtect(app)
 # =====================================================
 # LOGIN
 # =====================================================
+@app.context_processor
+def inject_user():
+    if "user_id" not in session:
+        return dict(current_user=None)
+
+    conn = get_db_connection()
+
+    user = conn.execute(
+        "SELECT id, username, rol FROM users WHERE id = ?",
+        (session["user_id"],)
+    ).fetchone()
+
+    conn.close()
+
+    return dict(current_user=user)
+def require_login():
+    user_id =session.get("user_id")
+    if not user_id:
+        return None
+    return int(user_id)
+def require_admin():
+    user_id = require_login()
+    if not user_id : 
+        return None 
+    conn = get_db_connection()
+    row = conn.execute("SELECT rol FROM users WHERE id = ? ",(user_id,)).fetchone()
+    conn.close()
+    print("ROL DEL USUARIO:", row["rol"] if row else "No encontrado")  # DEBUG
+    if not row or row["rol"] != "admin":
+
+        return None 
+    return user_id
+
+
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -157,9 +191,6 @@ def produccion():
 
     return render_template("producciones.html",ventas=ventas,vendedores=vendedores,clientes=clientes,tipo=tipo,q=q,venta =None)
 
-from datetime import datetime
-
-from datetime import datetime
 
 from datetime import datetime
 
@@ -991,6 +1022,104 @@ def agregar_material():
         conn.close()
 
     return redirect(url_for("clientes"))
+@app.route("/planilla")
+def planilla():
+    admin = require_admin()
+    if not admin:
+        return redirect(url_for("login"))
+    conn = get_db_connection()
+    planilla = conn.execute("SELECT * FROM planilla ORDER BY id DESC").fetchall()
+    subcontratados = conn.execute("SELECT * FROM subcontratados ORDER BY id DESC").fetchall()
+    conn.close()
+
+    return render_template("planilla.html",planilla= planilla,subcontratados=subcontratados)
+
+@app.route("/planilla_agregar", methods=["GET", "POST"])
+def planilla_agregar():
+    admin = require_admin()
+    if not admin:
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+
+    try:
+        if request.method == "POST":
+            nombre = request.form.get("nombre")
+            apellido = request.form.get("apellido")
+            cargo = request.form.get("cargo")
+            sueldo = request.form.get("sueldo")
+
+            conn.execute("""
+                INSERT INTO planilla (nombre, apellido, cargo, sueldo)
+                VALUES (?, ?, ?, ?)
+            """, (nombre, apellido, cargo, sueldo))
+            conn.commit()
+            flash("Empleado agregado a planilla", "success")
+            return redirect(url_for("planilla"))
+
+    except Exception as e:
+        conn.rollback()
+        print("❌ ERROR AGREGANDO A PLANILLA:", repr(e))
+        flash(f"Error agregando a planilla: {e}", "danger")
+        
+
+    finally:
+        conn.close()
+
+    return render_template("planilla.html")
+@app.route("/subcontratados_agregar",methods=["POST","GET"])
+def subcontratados_agregar():
+    admin = require_admin()
+    if not admin : 
+        return redirect(url_for("login"))
+    conn = get_db_connection()
+    subcontratados = []
+    try : 
+        if request.method == "POST": 
+            nombre = request.form.get("nombre")
+            apellido = request.form.get("apellido")
+            servicio = request.form.get("servicio")
+            monto = request.form.get("monto")
+
+            conn.execute("INSERT INTO subcontratados(nombre,apellido,servicio,monto) VALUES (?,?,?,?)",(nombre,apellido,servicio,monto))
+            conn.commit()
+            flash("Subcontratados Agregado con exito")
+            return redirect(url_for("planilla"))
+
+        
+            conn.rollback()
+            flash(f"Error a agregar {e}")
+    finally: 
+        conn.close()
+
+    return render_template("planilla.html")
+
+
+            
+
+def gastos_extras():
+    admin = require_admin()
+    if not admin : 
+        return redirect(url_for("login"))
+    return render_template("gastos_extras.html")
+@app.route("/planilla/<int:item_id>/eliminar", methods=["POST"])
+def planilla_aliminar(item_id):
+    admin = require_admin()
+    if not admin:
+        return redirect(url_for("login"))
+    try: 
+        conn = get_db_connection()
+        conn.execute("DELETE FROM planilla WHERE id = ?",(item_id,))
+        conn.commit()
+        
+    except Exception as e : 
+        conn.rollback()
+        flash(f"Error Eliminando :{e}","danger")
+    finally: 
+        conn.close()
+    return redirect(url_for("planilla"))
+    
+
 # =====================================================
 # LOGOUT
 # =====================================================

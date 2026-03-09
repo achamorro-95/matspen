@@ -261,8 +261,8 @@
             </div>
 
             <ul>
-                <li><a href="{{ url_for('costos') }}">💰 Costos</a></li>
-                <li><a href="{{ url_for('nuevo_costo') }}">📐 Costeo</a></li>
+               
+                
                 <li><a href="{{ url_for('clientes')}}">Catalogos</a></li>
                 <li class="nav-group">
                     <button class="nav-parent" type="button"
@@ -273,6 +273,7 @@
                     <div id = "coti_venta" class = "nav-children">
                         <a class = "nav-child" href="{{ url_for('cotizaciones')}}">Cotizaciones</a>
                     <a class ="nav-child" href="{{ url_for('dashboard') }}">📊 Dashboard</a>
+                    <a class = "nav-child" href ="{{url_for('nuevo_costo')}}">📐 Costeo</a>
                     </div>
                     <button class="nav-parent" type="button"
                             onclick="toggleMenu('ventas-menu', 'chev-ventas')">
@@ -286,6 +287,17 @@
                         <a class = "nav-child" href="{{ url_for('dashventas') }}">Dashboard Ventas</a>
                         
                     </div>
+                    {% if  current_user["rol"] == 'admin' %}
+                     <button class="nav-parent" type="button"
+                            onclick="toggleMenu('personal_menu', 'sub')">
+                        <span>Gastos</span>
+                        <span class="personal" id="sub">▾</span>
+                    </button>
+                    <div id = "personal_menu" class = "nav-children">
+                        <a class = "nav-child" href="{{ url_for('planilla')}}">Planilla</a>
+                        <a class = "nav-child" href="{{ url_for('costos')}}">Gastos</a>
+                    </div>
+                    {% endif %}
                   
                 </li>
                 <li><a href="{{ url_for('logout') }}">🚪 Cerrar sesión</a></li>

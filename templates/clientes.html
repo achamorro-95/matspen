@@ -5,26 +5,30 @@
 <h2 id="tituloSeccion">Clientes</h2>
 
 <div class="seleccion-group">
+  <button type ="button" id="btnAgregarNuevoCliente" class="agregarnuevo">Nuevo Cliente</button>
+  <button type ="button" id="btnAgregarNuevoVendedor" class="agregarnuevo" style="display: none;">Nuevo Vendedor</button>
+  <button type ="button" id="btnAgregarNuevoMaterial" class="agregarnuevo" style="display: none;">Nuevo Material</button>
   <button type="button" id="btnClientes" class="active" >Clientes</button>
   <button type="button" id="btnVendedores" >Vendedores</button>
   <button type ="button" id ="btnMateriales">Materiales</button>
+
 </div>
 <div class="separacion"></div>
 <!-- CONTENIDO CLIENTES -->
 <div id="seccionClientes">
-  <div class = "container">
+  <div class = "container1" id ="container1" style="display: none;">
     <form method="post" action="{{ url_for('agregar_clientes') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-            <label>Nombre</label>
-            <input type="text" name="nombre" required>
+            
+            <input type="text" name="nombre" placeholder="Nombre" required>
 
-            <label>Telefono</label>
-            <input type="text" name="telefono" required>
-            <label>Contacto</label>
-            <input type="text" name="contacto" required>
-            <label>Activo</label>
-            <input type="text" name="activo" required>
+            
+            <input type="text" name="telefono" placeholder="Telefono" required>
+            
+            <input type="text" name="contacto" placeholder="Contacto" required>
+      
+            <input type="text" name="activo" placeholder="Activo" required>
 
             <br><br>
             <button class="guardar" type="submit">Guardar</button>
@@ -70,21 +74,23 @@
 
 <!-- CONTENIDO VENDEDORES -->
 <div id="seccionVendedores" style="display:none;">
+  <div class = "container2" id="container2" style="display: none;">
       <form method="post" action="{{ url_for('agregar_vendedor') }}">
              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-            <label>Nombre</label>
-            <input type="text" name="nombre" required>
+           
+            <input type="text" name="nombre" placeholder ="Nombre" required>
 
-            <label>Telefono</label>
-            <input type="text" name="telefono" required>
+            
+            <input type="text" name="telefono" placeholder="Telefono" required>
 
-            <label>Activo</label>
-            <input type="text" name="activo" required>
+            
+            <input type="text" name="activo" placeholder ="Activo" required>
 
             <br><br>
             <button class="guardar" type="submit">Guardar</button>
         </form>
+  </div>
         
 
 <table broder="1" cellpadding="10" cellpadding="0" width = "100%">
@@ -123,36 +129,36 @@
 </div>
 
 <div id="seccionMateriales" style="display: none;">
-  <div class = "container2">
+  <div class = "container3" id ="container3" style="display: none;">
    <form method="post" action="{{ url_for('agregar_material') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <label>Nombre:</label>
-      <input type="text" name="material" required>
+      
+      <input type="text" name="material" placeholder="Nombre" required>
 
-      <label>Gramaje:</label>
-      <input type="text" name="gramaje" required>
+      
+      <input type="text" name="gramaje" placeholder="Gramaje" required>
 
-      <label>Pliegos Por Resma:</label>
-      <input type="text" name="pliegos_resma" required>
+     
+      <input type="text" name="pliegos_resma" placeholder ="PLiegos por Resmas" required>
       <br><br>
-      <label>Costo de Resma:</label>
-      <input type="number" name="costo" required>
+      
+      <input type="number" name="costo" placeholder ="Costo de Resma" required>
 
-      <label>Ancho Material:</label>
-      <input type="number" name="ancho" required>
+      
+      <input type="number" name="ancho" placeholder="Ancho Material" required>
 
-      <label>Alto Material:</label>
-      <input type="number" name ="alto" required>
-      <br><br
-      <label>Tipo de Impresion:</label>
-      <input type="number" name ="tipo" required>
+      
+      <input type="number" name ="alto"  placeholder ="Alto Material"required>
+      <br><br>
+      
+      <input type="number" name ="tipo" placeholder="Tipo" required>
 
        <br><br>
         <button class="guardar" type="submit">Guardar</button>
    </form>
   </div>
 
-   <table broder="1" cellpadding="10" cellpadding="0" width = "100%">
+   <table border="1" cellpadding="10" cellpadding="0" width = "100%">
     <thead>
       <tr>
         <th>Nombre:</th>
@@ -199,64 +205,19 @@
 
 
 <style>
-  .container2{
-    background: none;
-    display: flex;
-    padding: 10px;
-  }
-  .container2 form{
-   
-    align-items: center;
-  }
-  
-  .container2 form input{
-   border: none;              /* quitar todos los bordes */
-    border-bottom: 2px solid #ccc;  /* solo línea abajo */
-    outline: none;             /* quitar borde azul al hacer click */
-    padding: 8px 4px;
-    background: transparent;
-    width: 100px;
-    ;
-  }
-  .seleccion-group button{
-
-  
-    background: #c62828;
-    color: #fff;
+.seleccion-group button{
+    background: #f3f3f3;
+    color: #c62828;
     border-radius: 5px;
-    border: none;
+    border: 1px solid #c62828;
     padding: 10px;
-  }
-  .separacion{
-    margin:20px 10px;
-   
-  }
-  .container{
-    background:none;
-    border-radius: 10px;
-    display: flex;
-    padding: 10px;
-    
-    
-  }
-  .container form{
-    display: flex;
-    align-items: center;
-    color:black;
+}
 
+.seleccion-group button.active{
+    background: #c62828;
+    color: white;
+}
   
-
-    
-  }
-  .container form input{
-   border: none;              /* quitar todos los bordes */
-    border-bottom: 2px solid #ccc;  /* solo línea abajo */
-    outline: none;             /* quitar borde azul al hacer click */
-    padding: 8px 4px;
-    background: transparent;
-    width: 100px;
-    ;
-  }
     .guardar{
         background:#c62828;
         color:#fff;
@@ -266,14 +227,7 @@
         cursor: pointer;
         position: center;
     }
-    .agregarnuevo{
-        background: #c62828;
-        color: white;
-        border-radius: 10px;
-        padding: 10px;
-        border: none;
-        cursor: pointer;
-    }
+   
     .modal{
         display: none;
         position: fixed;
@@ -285,38 +239,91 @@
         justify-content: center;
 
     }
-    .modal-content{
-        background:#fff;
-        width: 600px;
-        max-width: 90%;
-        padding: 20px;
-        border-radius: 12px;
-        position: relative;
-        color:#c62828;
-       html { font-size: 16px; }  /* base */
-    body { font-size: 1rem; }  /* 16px */
-    h1 { font-size: 1.6rem; }  /* ~26px */
-    @media (min-width: 1024px){
-  html { font-size: 15px; }
-        
-    }
-    .modal-content input{
-        width: 100px;
-        padding: 5px;
-        margin:6px 0 12px 0;
-        box-sizing: border-box;
-    }
-    .close{
-        position: absolute;
-        top:10px;
-        right:12px;
-        font-size: 24px;
-        cursor: pointer;
-    }
+   .modal-content{
+    background:#fff;
+    width: 600px;
+    max-width: 90%;
+    padding: 20px;
+    border-radius: 12px;
+    position: relative;
+    color:#c62828;
+}
+
+.modal-content input{
+    width: 100px;
+    padding: 5px;
+    margin: 6px 0 12px 0;
+    box-sizing: border-box;
+}
+
+.close{
+    position: absolute;
+    top:10px;
+    right:12px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+html { font-size: 16px; }
+body { font-size: 1rem; }
+h1 { font-size: 1.6rem; }
+
+@media (min-width: 1024px){
+    html { font-size: 15px; }
+}
     thead th{
         background: #c62828;
         color:#fff;
     }
+    .container1 {
+      display: flex;
+      background: white;
+      border-radius: 10px;
+    }
+    .container1 form {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+    }
+    .container2 {
+      display: flex;
+      background: white;
+      border-radius: 10px;
+    }
+    .container2 form {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+    }
+    .container3 {
+      display:grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 10px;
+      background-color: white;
+      padding: 15px;
+      border-radius : 10px; 
+
+    }
+  
+
+  
+    .seleccion-group .agregarnuevo{
+    background: transparent !important;
+    color: #c62828 !important;
+    border: none !important;
+    padding: 10px !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+.seleccion-group .agregarnuevo:hover{
+    color: #8f0f1f !important;
+    text-decoration: underline;
+}
 </style>
 <script>
 
@@ -335,6 +342,10 @@ btnClientes.addEventListener("click", () => {
     seccionVendedores.style.display = "none";
     seccionMateriales.style.display= "none";
     titulo.textContent = "Clientes";
+    btnAgregarNuevoCliente.style.display = "inline-block";
+    btnAgregarNuevoVendedor.style.display = "none";
+    btnAgregarNuevoMaterial.style.display = "none";
+    
 
     btnClientes.classList.add("active");
     btnVendedores.classList.remove("active");
@@ -346,6 +357,10 @@ btnVendedores.addEventListener("click", () => {
     seccionVendedores.style.display = "block";
     seccionMateriales.style.display="none";
     titulo.textContent = "Vendedores";
+    btnAgregarNuevoCliente.style.display = "none";
+    btnAgregarNuevoVendedor.style.display = "inline-block";
+    btnAgregarNuevoMaterial.style.display = "none";
+
 
     btnVendedores.classList.add("active");
     btnClientes.classList.remove("active");
@@ -357,6 +372,10 @@ btnMateriales.addEventListener("click",()=>{
   seccionVendedores.style.display="none";
   seccionMateriales.style.display="block";
    titulo.textContent = "Materiales";
+  btnAgregarNuevoCliente.style.display = "none";
+  btnAgregarNuevoVendedor.style.display = "none";
+  btnAgregarNuevoMaterial.style.display = "inline-block";
+
 
   btnVendedores.classList.remove("active");
   btnClientes.classList.remove("active");
@@ -364,5 +383,36 @@ btnMateriales.addEventListener("click",()=>{
 
 
 })
+const btnAgregarNuevoCliente = document.getElementById("btnAgregarNuevoCliente");
+const btnAgregarNuevoVendedor = document.getElementById("btnAgregarNuevoVendedor");
+const btnAgregarNuevoMaterial = document.getElementById("btnAgregarNuevoMaterial");
+
+const container1 = document.getElementById("container1");
+const container2 = document.getElementById("container2");
+const container3 = document.getElementById("container3");
+
+
+btnAgregarNuevoCliente.addEventListener("click", () => {
+  if(container1.style.display === "none"){
+    container1.style.display = "flex";
+  }else{
+    container1.style.display = "none";
+  }
+});
+btnAgregarNuevoVendedor.addEventListener("click", () => {
+  if(container2.style.display === "none"){
+    container2.style.display = "flex";
+  }else{
+    container2.style.display = "none";
+  }
+});
+btnAgregarNuevoMaterial.addEventListener("click",()=>{
+    if(container3.style.display === "none"){
+      container3.style.display = "flex";
+    }else{
+      container3.style.display = "none";
+    } 
+
+});  
 </script>
 {% endblock %}
